@@ -1,0 +1,5 @@
+.goku
+build
+dist
+to_deploy.txt
+QNN.egg-info
