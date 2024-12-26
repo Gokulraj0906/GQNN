@@ -1,4 +1,6 @@
 from QNN.data.dataset import Data_Read
+from QNN.models.data_split import DataSplitter
+
 
 data_dir = '/home/gokulraj/Projects/Projects/Jupyter_notebook/Employee_Salary_Dataset.csv'
 
@@ -24,3 +26,16 @@ print(scaled_df.head())
 scaled_df_specific_columns = Data_Read.Scale_data(method='minmax', columns=['Salary', 'Age'])
 print("\nScaled DataFrame (only 'Salary' and 'Age' columns):")
 print(scaled_df_specific_columns.head())
+
+
+x = scaled_df.drop('Gender_Male',axis=1)
+y = scaled_df['Gender_Male']
+
+split = DataSplitter(X=x,y=y,train_size=0.7,shuffle=False,random_state=43)
+
+x_train,x_test,y_train,y_test = split.split()
+
+print(x_train.shape)
+print(x_test.shape)
+print(y_train.shape)
+print(y_test.shape)

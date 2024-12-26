@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 
 class DataSplitter:
-    @staticmethod
     def __init__(self, X: pd.DataFrame, y: pd.DataFrame, train_size: float, shuffle=True, random_state=None):
         """
         Initializes the DataSplitter class.
@@ -24,24 +23,21 @@ class DataSplitter:
 
         if self.random_state is not None:
             np.random.seed(self.random_state)
-        elif self.shuffle is not bool:
+        if not isinstance(self.shuffle, bool):
             raise ValueError("shuffle must be a boolean value")
-        elif self.train_size < 0 or self.train_size > 1:
+        if not (0 < self.train_size <= 1):
             raise ValueError("train_size must be a float between 0 and 1")
-        elif self.X.shape[0] != self.y.shape[0]:
+        if self.X.shape[0] != self.y.shape[0]:
             raise ValueError("X and y must have the same number of samples")
-        elif self.X.shape[0] == 0:
+        if self.X.shape[0] == 0:
             raise ValueError("X and y must have at least one sample")
-        elif self.X.shape[0] == 1:
+        if self.X.shape[0] == 1:
             raise ValueError("X and y must have more than one sample")
-        elif self.X.shape[1] == 0:
+        if self.X.shape[1] == 0:
             raise ValueError("X must have at least one feature")
-        elif self.y.nunique() == 1:
-            raise ValueError("y must have more than one unique value")          
-        else:
-            pass
-    
-    @staticmethod
+        if self.y.nunique() == 1:
+            raise ValueError("y must have more than one unique value")
+
     def split(self):
         """
         Splits the data into training and testing sets.

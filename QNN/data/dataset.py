@@ -1,7 +1,6 @@
 import os
 import platform
 
-# Dynamically import pandas based on the operating system
 if platform.system().lower() == "linux":
     import fireducks.pandas as pd
 else:

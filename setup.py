@@ -12,12 +12,14 @@ setup(
     ),
     long_description=open('README.md').read(), 
     long_description_content_type='text/markdown',
-    url='https://github.com/gokulraj0906/GQNN',  
+    url='https://github.com/gokulraj0906/QNN',  
     packages=find_packages(),
     install_requires=[
         'numpy',
         'pandas',
+        'fireducks',
         'scikit-learn',
+        'qiskit'
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
