@@ -3,3 +3,6 @@ build
 dist
 to_deploy.txt
 QNN.egg-info
+
+__pycache__/
+*.pyc
