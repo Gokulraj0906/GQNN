@@ -45,6 +45,10 @@ Package Metadata:
 """
 
 from QNN.data import dataset
+from QNN.models import Linear_model
+from QNN.models import save_models
+from QNN.models import data_split
+from QNN.validation import validation
 
 __all__ = ["dataset"]
 
