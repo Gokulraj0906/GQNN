@@ -7,11 +7,17 @@ else:
     import pandas as pd
 
 
+
 class Data_Read:
     """This class helps to read datasets from a local directory, perform data manipulation, and scale data."""
     def __init__(self):
         self.data_path = None
         self.df = None
+    
+    if 'fireducks.pandas' in pd.__name__:
+        print("Fireducks Pandas is being used.")
+    else:
+        print("Standard Pandas is being used.")
 
     @staticmethod
     def clean_data(df: pd.DataFrame) -> pd.DataFrame:

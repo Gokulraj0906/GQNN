@@ -1,7 +1,7 @@
 ```markdown
-# GQNN: A Python Package for Quantum Neural Networks
+# QNN: A Python Package for Quantum Neural Networks
 
-GQNN is a pioneering Python library designed for research and experimentation with Quantum Neural Networks (QNNs). By integrating principles of quantum computing with classical neural network architectures, GQNN enables researchers to explore hybrid models that leverage the computational advantages of quantum systems. This library was developed by **Gokul Raj S** as part of his research on Customized Quantum Neural Networks.
+QNN is a pioneering Python library designed for research and experimentation with Quantum Neural Networks (QNNs). By integrating principles of quantum computing with classical neural network architectures, QNN enables researchers to explore hybrid models that leverage the computational advantages of quantum systems. This library was developed by **Gokul Raj S** as part of his research on Customized Quantum Neural Networks.
 
 ---
 
@@ -23,7 +23,7 @@ GQNN is a pioneering Python library designed for research and experimentation wi
 
 ## Introduction
 
-Quantum Neural Networks (QNNs) are an emerging field of study combining the principles of quantum mechanics with artificial intelligence. The **GQNN** package offers a platform to implement and study hybrid quantum-classical neural networks, aiming to bridge the gap between theoretical quantum algorithms and practical machine learning applications.
+Quantum Neural Networks (QNNs) are an emerging field of study combining the principles of quantum mechanics with artificial intelligence. The **QNN** package offers a platform to implement and study hybrid quantum-classical neural networks, aiming to bridge the gap between theoretical quantum algorithms and practical machine learning applications.
 
 This package allows you to:
 
@@ -50,16 +50,16 @@ This package allows you to:
 - Python 3.7 or higher
 - Ensure pip is updated: `pip install --upgrade pip`
 
-### Installing GQNN
+### Installing QNN
 #### From PyPI (when published)
 ```bash
-pip install gqnn
+pip install QNN
 ```
 
 #### From Source
 ```bash
-git clone https://github.com/gokulraj0906/GQNN.git
-cd GQNN
+git clone https://github.com/gokulraj0906/QNN.git
+cd QNN
 pip install .
 ```
 
@@ -69,7 +69,7 @@ pip install .
 
 ### Basic Example
 ```python
-from GQNN import QuantumNeuralNetwork
+from QNN import QuantumNeuralNetwork
 
 # Create a Quantum Neural Network instance
 qnn = QuantumNeuralNetwork(qubits=4, layers=2)
@@ -95,7 +95,7 @@ For more advanced configurations, such as custom quantum gates or layers, refer 
 
 ## Use Cases
 
-GQNN can be used for:
+QNN can be used for:
 1. **Research and Development**: Experiment with quantum-enhanced machine learning algorithms.
 2. **Education**: Learn and teach quantum computing principles via QNNs.
 3. **Prototyping**: Develop proof-of-concept models for quantum computing applications.
@@ -105,16 +105,16 @@ GQNN can be used for:
 
 ## Documentation
 
-Comprehensive documentation is available to help you get started with GQNN, including tutorials, API references, and implementation guides.
+Comprehensive documentation is available to help you get started with QNN, including tutorials, API references, and implementation guides.
 
-- **Documentation**: [GQNN Documentation](https://github.com/gokulraj0906/GQNN/docs)
-- **Examples**: [Examples Folder](https://github.com/gokulraj0906/GQNN/examples)
+- **Documentation**: [QNN Documentation](https://github.com/gokulraj0906/QNN/docs)
+- **Examples**: [Examples Folder](https://github.com/gokulraj0906/QNN/examples)
 
 ---
 
 ## Requirements
 
-The following dependencies are required to use GQNN:
+The following dependencies are required to use QNN:
 
 - Python >= 3.7
 - NumPy
@@ -133,12 +133,12 @@ pip install numpy pandas scikit-learn
 
 ## Contribution
 
-We welcome contributions to make GQNN better! Here's how you can contribute:
+We welcome contributions to make QNN better! Here's how you can contribute:
 
 1. **Fork the Repository**: Click the "Fork" button on the GitHub page.
 2. **Clone Your Fork**:
     ```bash
-    git clone https://github.com/gokulraj0906/GQNN.git
+    git clone https://github.com/gokulraj0906/QNN.git
     ```
 3. **Create a New Branch**:
     ```bash
@@ -155,7 +155,7 @@ We welcome contributions to make GQNN better! Here's how you can contribute:
 
 ## License
 
-GQNN is licensed under the MIT License. See the [LICENSE](LICENSE) file for full details.
+QNN is licensed under the MIT License. See the [LICENSE](LICENSE) file for full details.
 
 ---
 

@@ -19,7 +19,9 @@ setup(
         'pandas',
         'fireducks',
         'scikit-learn',
-        'qiskit'
+        'qiskit',
+        'qiskit_ibm_runtime',
+        'qiskit-machine-learning',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
