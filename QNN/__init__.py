@@ -50,7 +50,7 @@ from QNN.models import save_models
 from QNN.models import data_split
 from QNN.validation import validation
 
-__all__ = ["dataset"]
+__all__ = ["dataset","Linear_model","save_models","data_split"]
 
 __author__ = "GokulRaj S"
 __version__ = "0.1.0"

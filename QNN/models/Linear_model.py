@@ -30,7 +30,6 @@ class LinearRegression:
             X_train (np.ndarray): Training features.
             y_train (np.ndarray or pd.Series): Training labels.
         """
-        # Ensure y_train is a NumPy array
         if isinstance(y_train, pd.Series):
             y_train = y_train.to_numpy()
         
@@ -51,7 +50,6 @@ class LinearRegression:
         loading_symbols = itertools.cycle(["|", "/", "-", "\\"])
         for epoch in range(self.epochs):
             print(f"Training: Epoch {epoch + 1}/{self.epochs} {next(loading_symbols)}", end="\r")
-            time.sleep(0.10)
 
             # Forward pass
             predictions = self._forward(X_train).ravel()
@@ -114,17 +112,13 @@ class LinearRegression:
         Returns:
             float: R^2 score, a measure of how well the predictions match the true values.
         """
-        # Ensure y_test is a NumPy array
         if isinstance(y_test, pd.Series):
             y_test = y_test.to_numpy()
         
-        # Predict values
         predictions = self.predict(X_test)
 
-        # Calculate the total sum of squares (TSS) and residual sum of squares (RSS)
         tss = np.sum((y_test - np.mean(y_test)) ** 2)
         rss = np.sum((y_test - predictions) ** 2)
 
-        # Compute R^2 score
         r2_score = 1 - (rss / tss)
         return r2_score

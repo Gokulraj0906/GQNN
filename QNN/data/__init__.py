@@ -1,2 +1,3 @@
 from QNN.data import dataset
-__all__ = ["dataset"]
+from QNN.data import rfe
+__all__ = ["dataset","rfe"]
