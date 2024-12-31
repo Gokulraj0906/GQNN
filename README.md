@@ -1,4 +1,3 @@
-```markdown
 # QNN: A Python Package for Quantum Neural Networks
 
 QNN is a pioneering Python library designed for research and experimentation with Quantum Neural Networks (QNNs). By integrating principles of quantum computing with classical neural network architectures, QNN enables researchers to explore hybrid models that leverage the computational advantages of quantum systems. This library was developed by **Gokul Raj S** as part of his research on Customized Quantum Neural Networks.
