@@ -7,3 +7,4 @@ QNN.egg-info
 __pycache__/
 *.pyc
 *.txt
+*.csv
