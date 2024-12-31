@@ -22,6 +22,8 @@ setup(
         'qiskit',
         'qiskit_ibm_runtime',
         'qiskit-machine-learning',
+        'pylatexenc',
+        'ipython',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',

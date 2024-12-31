@@ -20,22 +20,19 @@ class PCA:
         Parameters:
         X (numpy.ndarray): The data matrix of shape (n_samples, n_features).
         """
-        # Center the data by subtracting the mean
+        
         self.mean = np.mean(X, axis=0)
         X_centered = X - self.mean
 
-        # Compute the covariance matrix
+
         covariance_matrix = np.cov(X_centered, rowvar=False)
 
-        # Perform eigen decomposition
         eigenvalues, eigenvectors = np.linalg.eigh(covariance_matrix)
 
-        # Sort eigenvalues and eigenvectors in descending order
         sorted_indices = np.argsort(eigenvalues)[::-1]
         eigenvalues = eigenvalues[sorted_indices]
         eigenvectors = eigenvectors[:, sorted_indices]
 
-        # Select the top n_components
         self.components = eigenvectors[:, :self.n_components]
         self.explained_variance = eigenvalues[:self.n_components]
 
@@ -80,17 +77,3 @@ class PCA:
         
         total_variance = np.sum(self.explained_variance)
         return self.explained_variance / total_variance
-    
-
-# Example dataset
-X = np.array([[2.5, 2.4],
-              [0.5, 0.7],
-              [2.2, 2.9],
-              [1.9, 2.2],
-              [3.1, 3.0],
-              [2.3, 2.7],
-              [2, 1.6],
-              [1, 1.1],
-              [1.5, 1.6],
-              [1.1, 0.9]])
-
