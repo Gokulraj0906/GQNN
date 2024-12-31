@@ -6,18 +6,16 @@ if platform.system().lower() == "linux":
 else:
     import pandas as pd
 
-
-
 class Data_Read:
     """This class helps to read datasets from a local directory, perform data manipulation, and scale data."""
     def __init__(self):
         self.data_path = None
         self.df = None
-    
+
     if 'fireducks.pandas' in pd.__name__:
-        print("Fireducks Pandas is being used.")
+        print("🚀 Linux Kernel detected! Time to unleash the power of open-source computing! 🐧")
     else:
-        print("Standard Pandas is being used.")
+        print("🌍 Running on Windows or MacOS! Let's make some magic happen across platforms! 🎩✨")
 
     @staticmethod
     def clean_data(df: pd.DataFrame) -> pd.DataFrame:

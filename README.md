@@ -178,4 +178,3 @@ For queries, feedback, or collaboration opportunities, please reach out:
 ---
 
 Happy Quantum Computing! 🚀
-```
