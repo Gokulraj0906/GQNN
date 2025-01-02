@@ -24,6 +24,7 @@ setup(
         'qiskit-machine-learning',
         'pylatexenc',
         'ipython',
+        'matplotlib',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
