@@ -1,7 +1,8 @@
-from QNN.data.dataset import Data_Read
-from QNN.models.data_split import DataSplitter
-from QNN.models.Linear_model import QuantumClassifier_EstimatorQNN
+from GQNN.data.dataset import Data_Read
+from GQNN.models.data_split import DataSplitter
+from GQNN.models.Linear_model import QuantumClassifier_EstimatorQNN
 import numpy as np 
+
 
 
 data_dir = '/home/gokulraj/Projects/Projects/GQNN/QNN/examples/Employee_Salary_Dataset.csv'
@@ -35,7 +36,7 @@ x_train,x_test,y_train,y_test = split.split()
 x_train = np.array(x_train)
 y_train = np.array(y_train)
 
-model = QuantumClassifier_EstimatorQNN(num_qubits=4,maxiter=20,random_seed=43)
+model = QuantumClassifier_EstimatorQNN(num_qubits=4,maxiter=60,random_seed=143)
 
 model.fit(x_train,y_train)
 

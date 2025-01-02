@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.datasets import load_breast_cancer, load_diabetes
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from QNN.data.rfe import FeatureSelector
+from GQNN.data.rfe import FeatureSelector
 
 
 data_classification = load_breast_cancer()

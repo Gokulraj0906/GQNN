@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='QNN',
+    name='GQNN',
     version='0.1.0',
     author='GokulRaj S',
     author_email='gokulsenthil0906@gmail.com', 
@@ -12,12 +12,11 @@ setup(
     ),
     long_description=open('README.md').read(), 
     long_description_content_type='text/markdown',
-    url='https://github.com/gokulraj0906/QNN',  
+    url='https://github.com/gokulraj0906/GQNN',  
     packages=find_packages(),
     install_requires=[
         'numpy',
         'pandas',
-        'fireducks',
         'scikit-learn',
         'qiskit',
         'qiskit_ibm_runtime',
@@ -26,6 +25,9 @@ setup(
         'ipython',
         'matplotlib',
     ],
+     extras_require={
+        'linux': ['fireducks']
+    },
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License', 

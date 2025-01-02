@@ -2,7 +2,7 @@ import unittest
 import os
 import pandas as pd
 from io import StringIO
-from QNN.data.dataset import Data_Read
+from GQNN.data.dataset import Data_Read
 
 class TestDataRead(unittest.TestCase):
 

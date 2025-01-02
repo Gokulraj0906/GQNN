@@ -1,4 +1,4 @@
-from QNN.data.pca import PCA
+from GQNN.data.pca import PCA
 import numpy as np 
 from sklearn.datasets import load_iris
 

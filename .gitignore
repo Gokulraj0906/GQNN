@@ -8,3 +8,6 @@ __pycache__/
 *.pyc
 *.txt
 *.csv
+.venv/
+.env
+.png
