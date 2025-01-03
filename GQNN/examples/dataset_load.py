@@ -5,7 +5,7 @@ import numpy as np
 
 
 
-data_dir = '/home/gokulraj/Projects/Projects/GQNN/QNN/examples/Employee_Salary_Dataset.csv'
+data_dir = 'Employee_Salary_Dataset.csv'
 
 df = Data_Read.Read_csv(data_dir)
 
