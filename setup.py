@@ -12,6 +12,7 @@ setup(
     ),
     long_description=open('README.md',encoding='utf-8').read(), 
     long_description_content_type='text/markdown',
+    changelog_path = open('CHANGELOG.md',encoding='utf-8').read(),
     url='https://github.com/gokulraj0906/GQNN',
     license=open('LICENSE',encoding='utf-8').read(),  
     packages=find_packages(),
