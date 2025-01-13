@@ -18,7 +18,6 @@ class DataSplitter:
         self.train_size = train_size
         self.shuffle = shuffle
         self.random_state = random_state
-
         self.n_samples = len(X)
 
         if self.random_state is not None:

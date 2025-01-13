@@ -2,7 +2,7 @@
 build
 dist
 to_deploy.txt
-QNN.egg-info
+GQNN.egg-info
 
 __pycache__/
 *.pyc
@@ -10,4 +10,4 @@ __pycache__/
 *.csv
 .venv/
 .env
-.png
+*.png

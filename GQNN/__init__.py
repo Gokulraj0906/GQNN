@@ -85,3 +85,9 @@ __documentation_url__ = "https://www.gokulraj.tech/GQNN/docs"
 __bug_report_url__ = "https://www.gokulraj.tech/GQNN/report"
 __funding_url__ = "https://www.gokulraj.tech/GQNN/support"
 __tutorial_url__ = "https://www.gokulraj.tech/GQNN/tutorials"
+
+# import pyttsx3
+# engine = pyttsx3.init()
+# engine.say("GQNN Package has been successfully imported")
+# engine.setProperty("rate", 170)
+# engine.runAndWait()

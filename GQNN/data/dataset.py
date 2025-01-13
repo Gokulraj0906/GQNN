@@ -1,10 +1,5 @@
-import os
-import platform
+# import os
 
-if platform.system().lower() == "linux":
-    import fireducks.pandas as pd
-else:
-    import pandas as pd
 
 class Data_Read:
     """
@@ -20,6 +15,13 @@ class Data_Read:
     def __init__(self):
         self.data_path = None
         self.df = None
+    
+    import platform
+
+    if platform.system().lower() == "linux":
+        import fireducks.pandas as pd
+    else:
+        import pandas as pd
 
     if 'fireducks.pandas' in pd.__name__:
         print("🚀 Linux Kernel detected! Time to unleash the power of open-source computing! 🐧")
@@ -27,18 +29,33 @@ class Data_Read:
         print("🌍 Running on Windows or MacOS! Let's make some magic happen across platforms! 🎩✨")
 
     @staticmethod
-    def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    def _clean_data(df: pd.DataFrame) -> pd.DataFrame:
         """
-        Cleans the dataset by removing duplicate rows and rows with null values.
+        Cleans the dataset by removing duplicate rows, handling missing values, and removing outliers.
 
         Args:
             df (pd.DataFrame): The input DataFrame to be cleaned.
 
         Returns:
-            pd.DataFrame: A cleaned DataFrame with duplicates and null values removed.
+            pd.DataFrame: A cleaned DataFrame with duplicates, missing values handled, and outliers removed.
         """
         df = df.drop_duplicates()
-        df = df.dropna()
+
+        numerical_columns = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
+        categorical_columns = df.select_dtypes(include=['object']).columns.tolist()
+
+        df[numerical_columns] = df[numerical_columns].fillna(df[numerical_columns].mean())
+
+        df[categorical_columns] = df[categorical_columns].fillna(df[categorical_columns].mode().iloc[0])
+
+        Q1 = df[numerical_columns].quantile(0.25)
+        Q3 = df[numerical_columns].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+
+        df = df[~((df[numerical_columns] < lower_bound) | (df[numerical_columns] > upper_bound)).any(axis=1)]
+
         return df
 
     @staticmethod
@@ -56,6 +73,7 @@ class Data_Read:
         Raises:
             FileNotFoundError: If no matching file is found in the directory or if the path is invalid.
         """
+        import os
         if os.path.isdir(data_path):
             files = [f for f in os.listdir(data_path) if f.endswith(file_extension)]
             if files:
@@ -83,6 +101,13 @@ class Data_Read:
         Raises:
             ValueError: If no data is loaded or if non-string columns are included in the specified list.
         """
+        import platform
+
+        if platform.system().lower() == "linux":
+            import fireducks.pandas as pd
+        else:
+            import pandas as pd
+
         if cls.df is None:
             raise ValueError("No data available to convert. Please read data first.")
 
@@ -108,10 +133,17 @@ class Data_Read:
         Returns:
             pd.DataFrame: Cleaned DataFrame.
         """
+        import platform
+
+        if platform.system().lower() == "linux":
+            import fireducks.pandas as pd
+        else:
+            import pandas as pd
+        
         path = cls._get_file_path(data_path, '.csv')
         cls.data_path = path 
         df = pd.read_csv(path)
-        cls.df = cls.clean_data(df)
+        cls.df = cls._clean_data(df)
         cls.convert_strings_to_numeric()  
         return cls.df
 
@@ -126,10 +158,17 @@ class Data_Read:
         Returns:
             pd.DataFrame: Cleaned DataFrame.
         """
+        import platform
+
+        if platform.system().lower() == "linux":
+            import fireducks.pandas as pd
+        else:
+            import pandas as pd
+    
         path = cls._get_file_path(data_path, '.xlsx')
         cls.data_path = path 
         df = pd.read_excel(path)
-        cls.df = cls.clean_data(df)
+        cls.df = cls._clean_data(df)
         cls.convert_strings_to_numeric()  
         return cls.df
 
@@ -144,10 +183,17 @@ class Data_Read:
         Returns:
             pd.DataFrame: Cleaned DataFrame.
         """
+        import platform
+
+        if platform.system().lower() == "linux":
+            import fireducks.pandas as pd
+        else:
+            import pandas as pd
+        
         path = cls._get_file_path(data_path, '.json')
         cls.data_path = path  
         df = pd.read_json(path)
-        cls.df = cls.clean_data(df)
+        cls.df = cls._clean_data(df)
         cls.convert_strings_to_numeric()  
         return cls.df
 
@@ -163,11 +209,18 @@ class Data_Read:
         Returns:
             pd.DataFrame: Cleaned DataFrame.
         """
+        import platform
+
+        if platform.system().lower() == "linux":
+            import fireducks.pandas as pd
+        else:
+            import pandas as pd
+
         import sqlite3
         conn = sqlite3.connect(data_path)
         df = pd.read_sql_query(query, conn)
         conn.close()
-        cls.df = cls.clean_data(df)
+        cls.df = cls._clean_data(df)
         cls.convert_strings_to_numeric()  
         return cls.df
     
