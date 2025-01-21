@@ -29,7 +29,7 @@ Tutorials: https://www.gokulraj.tech/GQNN/tutorials
 Example Usage:
 --------------
 >>> from GQNN.data import dataset
->>> from GQNN.models import Linear_model
+>>> from GQNN.models import classification_model
 >>> from GQNN.models import save_models
 >>> from GQNN.models import data_split
 >>> from GQNN.validation import validation
@@ -63,13 +63,13 @@ For more information, please refer to the documentation at https://www.gokulraj.
 
 
 from GQNN.data import dataset
-from GQNN.models import Linear_model
+from GQNN.models import classification_model
 from GQNN.models import data_split
 from GQNN.validation import validation
 from GQNN.data import rfe
 from GQNN.data import pca
 
-__all__ = ["dataset","Linear_model","data_split","rfe","pca","validation"]
+__all__ = ["dataset","classification_model","data_split","rfe","pca","validation"]
 
 __author__ = "GokulRaj S"
 __version__ = "0.1.0"

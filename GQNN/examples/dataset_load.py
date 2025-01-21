@@ -1,47 +1,55 @@
 from GQNN.data.dataset import Data_Read
 from GQNN.models.data_split import DataSplitter
-from GQNN.models.Linear_model import QuantumClassifier_EstimatorQNN_CPU
+from GQNN.models.classification_model import QuantumClassifier_EstimatorQNN_CPU, QuantumClassifier_SamplerQNN_CPU
 import numpy as np
 from joblib import dump, load
 
-# Data loading and preparation
+# Path to dataset
 data_dir = '/home/gokulraj/Projects/GQNN/GQNN/examples/Employee_Salary_Dataset.csv'
 
-# Read and process the data
-df = Data_Read.Read_csv(data_dir)
-
-# Clean the data (convert strings to numeric, scale the data)
-df_with_encoded_columns = Data_Read.convert_strings_to_numeric()
-scaled_df = Data_Read.Scale_data(method='minmax')
+# Step 1: Load and preprocess data
+df = Data_Read.Read_csv(data_dir)  # Read the CSV file
+df_with_encoded_columns = Data_Read.convert_strings_to_numeric()  # Convert categorical strings to numeric
+scaled_df = Data_Read.Scale_data(method='minmax')  # Scale data using Min-Max Scaling
 
 print("\nScaled DataFrame (using Min-Max Scaling):")
 print(scaled_df.head())
 
+# Step 2: Define features (X) and target (y)
+x = scaled_df.drop('Gender_Male', axis=1)  # Drop target column from features
+y = scaled_df['Gender_Male'].astype(int)  # Convert target to integer
 
-x = df_with_encoded_columns.drop('Gender_Male', axis=1)
-y = df_with_encoded_columns['Gender_Male'].astype(int)
-
-
-split = DataSplitter(x, y, 0.75, True, 43)
+# Step 3: Split data into training and testing sets
+split = DataSplitter(x, y, train_size=0.75, shuffle=True, random_state=43)
 x_train, x_test, y_train, y_test = split.split()
 
+x_train = np.array(x_train)  
+y_train = np.array(y_train)  
+x_test = np.array(x_test)    
+y_test = np.array(y_test)    
 
-x_train = np.array(x_train)
-y_train = np.array(y_train)
-
-
-num_qubits = x_train.shape[1]
+num_qubits = x_train.shape[1]  
 print(f"x_train shape: {x_train.shape}")
+print(f"x_train shape: {x_train.shape}")  
+print(f"y_train shape: {y_train.shape}")  
 
-model_1 = QuantumClassifier_EstimatorQNN_CPU(
-    num_qubits=num_qubits, 
-    maxiter=20,
-    random_seed=143
-)
+# Initialize and train the Quantum Neural Network model
+# model = QuantumClassifier_EstimatorQNN_CPU(num_qubits=4, maxiter=60)
+# model.fit(x_train, y_train)
 
+# # Print the trained model's parameters
+# model.print_model()
+
+# # Evaluate the model and compute accuracy
+# score = model.score(x_test, y_test)
+# adjusted_score = 1 - score
+# print(f"Model accuracy (adjusted): {adjusted_score * 100:.2f}%")
+
+model_1 = QuantumClassifier_SamplerQNN_CPU(num_inputs=4, output_shape=2, ansatz_reps=1,maxiter=35)
 model_1.fit(x_train, y_train)
 
+# Print the trained model's parameters
 model_1.print_model()
 
-score_1 = model_1.score(x_test, y_test)
-print(f"Model accuracy (on training): {score_1 * 100:.2f}%")
+model_1_score = model_1.score(x_test, y_test)
+print(f"Model accuracy (QuantumClassifier_SamplerQNN_CPU): {model_1_score * 100:.2f}%")
