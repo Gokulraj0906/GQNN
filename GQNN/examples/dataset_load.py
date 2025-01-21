@@ -1,6 +1,6 @@
 from GQNN.data.dataset import Data_Read
 from GQNN.models.data_split import DataSplitter
-from GQNN.models.classification_model import QuantumClassifier_EstimatorQNN_CPU, QuantumClassifier_SamplerQNN_CPU
+from GQNN.models.classification_model import QuantumClassifier_EstimatorQNN_CPU, QuantumClassifier_SamplerQNN_CPU,VariationalQuantumClassifier_CPU
 import numpy as np
 from joblib import dump, load
 
@@ -45,11 +45,22 @@ print(f"y_train shape: {y_train.shape}")
 # adjusted_score = 1 - score
 # print(f"Model accuracy (adjusted): {adjusted_score * 100:.2f}%")
 
-model_1 = QuantumClassifier_SamplerQNN_CPU(num_inputs=4, output_shape=2, ansatz_reps=1,maxiter=35)
-model_1.fit(x_train, y_train)
+# model_1 = QuantumClassifier_SamplerQNN_CPU(num_inputs=4, output_shape=2, ansatz_reps=1,maxiter=35)
+# model_1.fit(x_train, y_train)
+
+# # Print the trained model's parameters
+# model_1.print_model()
+
+# model_1_score = model_1.score(x_test, y_test)
+# print(f"Model accuracy (QuantumClassifier_SamplerQNN_CPU): {model_1_score * 100:.2f}%")
+
+model_2 = VariationalQuantumClassifier_CPU(num_inputs=num_qubits,max_iter=40)
+
+model_2.fit(x_train, y_train)
 
 # Print the trained model's parameters
-model_1.print_model()
+model_2.print_model()
 
-model_1_score = model_1.score(x_test, y_test)
-print(f"Model accuracy (QuantumClassifier_SamplerQNN_CPU): {model_1_score * 100:.2f}%")
+model_2_score = model_2.score(x_test, y_test)
+
+print(f"Model accuracy (VariationalQuantumClassifier_CPU): {model_2_score * 100:.2f}%")

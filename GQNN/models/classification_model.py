@@ -45,7 +45,7 @@ class QuantumClassifier_EstimatorQNN_CPU:
     """
     
     
-    def __init__(self, num_qubits: int, maxiter: int):
+    def __init__(self, num_qubits: int, maxiter: int|int=30):
         """
         Initializes the QuantumClassifier with the specified parameters.
         
@@ -168,7 +168,7 @@ class QuantumClassifier_EstimatorQNN_CPU:
 """"This code will runs on Local computer """
 
 class QuantumClassifier_SamplerQNN_CPU:
-    def __init__(self, num_inputs:int, output_shape:int, ansatz_reps:int, maxiter:int):
+    def __init__(self, num_inputs:int, output_shape:int, ansatz_reps:int|int = 1, maxiter:int|int=30):
         """
         Initialize the QuantumClassifier with customizable parameters.
 
@@ -282,3 +282,134 @@ class QuantumClassifier_SamplerQNN_CPU:
         print("Quantum Circuit:")
         print(self.qnn_circuit)
         print("Model Weights:", self.classifier.weights)
+
+""""This code will runs on Local computer """
+
+class VariationalQuantumClassifier_CPU:
+    """
+    A class for building, training, and evaluating a Variational Quantum Classifier (VQC).
+
+    Attributes:
+        num_inputs (int): Number of qubits/features in the quantum circuit.
+        max_iter (int): Maximum iterations for the optimizer.
+        feature_map (QuantumCircuit): Feature map used for embedding classical data into a quantum state.
+        ansatz (QuantumCircuit): Ansatz used as the variational component of the quantum circuit.
+        sampler (Sampler): Backend for quantum computations.
+        vqc (VQC): The Variational Quantum Classifier model.
+        objective_func_vals (list): List to store objective function values during training.
+    """
+
+    def __init__(self, num_inputs: int = 2, max_iter: int = 30):
+        """
+        Initialize the VQC with a feature map, ansatz, and optimizer.
+        
+        Args:
+            num_inputs (int): Number of qubits/features.
+            max_iter (int): Maximum iterations for the optimizer.
+        """
+        from qiskit.circuit.library import ZZFeatureMap, RealAmplitudes
+        from qiskit_machine_learning.algorithms.classifiers import VQC
+        from qiskit_machine_learning.optimizers import COBYLA
+        from qiskit.primitives import StatevectorSampler
+
+        self.num_inputs = num_inputs
+        self.max_iter = max_iter
+        self.objective_func_vals = []
+        
+        # Initialize feature map, ansatz, and sampler
+        self.feature_map = ZZFeatureMap(num_inputs)
+        self.ansatz = RealAmplitudes(num_inputs, reps=1)
+        self.sampler = StatevectorSampler()
+        
+        # Initialize VQC model
+        self.vqc = VQC(
+            feature_map=self.feature_map,
+            ansatz=self.ansatz,
+            loss="cross_entropy",
+            optimizer=COBYLA(maxiter=self.max_iter),
+            callback=self._callback_graph,
+            sampler=self.sampler,
+        )
+
+    def _callback_graph(self, weights, obj_func_eval):
+        """
+        Callback function to visualize the objective function value during training.
+        
+        Args:
+            weights (np.ndarray): Model weights during training.
+            obj_func_eval (float): Current objective function value.
+        """
+        import matplotlib.pyplot as plt
+        from IPython.display import clear_output
+        import warnings
+        warnings.filterwarnings("ignore", category=UserWarning, message="FigureCanvasAgg is non-interactive")
+        clear_output(wait=True)
+        self.objective_func_vals.append(obj_func_eval)
+        plt.title("Objective Function Value During Training")
+        plt.xlabel("Iteration")
+        plt.ylabel("Objective Function Value")
+        plt.plot(range(len(self.objective_func_vals)), self.objective_func_vals, color='b')
+        plt.show()
+        plt.savefig("Training Graph.png")
+
+    import numpy as np
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        """
+        Train the VQC on the provided dataset.
+        
+        Args:
+            X (np.ndarray): Training data (features).
+            y (np.ndarray): Training data (labels).
+        """
+        import matplotlib.pyplot as plt
+        plt.ion()  # Enable interactive mode for live plotting
+        self.vqc.fit(X, y)
+        self.weights = self.vqc.weights
+        plt.ioff()  # Disable interactive mode
+        plt.show()
+
+    import numpy as np
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """
+        Predict labels for the input data.
+        
+        Args:
+            X (np.ndarray): Input data for prediction.
+        
+        Returns:
+            np.ndarray: Predicted labels.
+        """
+        return self.vqc.predict(X)
+    import numpy as np
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        """
+        Evaluate the accuracy of the VQC on the provided dataset.
+        
+        Args:
+            X (np.ndarray): Test data (features).
+            y (np.ndarray): True labels.
+        
+        Returns:
+            float: Accuracy score.
+        """
+        return self.vqc.score(X, y)
+
+    def print_model(self, file_name: str = "quantum_circuit.png"):
+        """
+        Visualize and save the quantum circuit diagram.
+        
+        Args:
+            file_name (str): File name to save the circuit diagram.
+        """
+        try:
+            circuit = self.feature_map.compose(self.ansatz).decompose()
+            circuit.draw(output="mpl").savefig(file_name)
+            print(f"Circuit diagram saved as {file_name}")
+        except Exception as e:
+            print(f"Error visualizing the circuit: {e}")
+        
+        print("Quantum Circuit:")
+        print(self.feature_map)
+        print(self.ansatz)
+        print("Model Weights:")
+        print(self.vqc.weights)
