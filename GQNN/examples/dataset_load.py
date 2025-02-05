@@ -2,7 +2,6 @@ from GQNN.data.dataset import Data_Read
 from GQNN.models.data_split import DataSplitter
 from GQNN.models.classification_model import QuantumClassifier_EstimatorQNN_CPU, QuantumClassifier_SamplerQNN_CPU,VariationalQuantumClassifier_CPU
 import numpy as np
-from joblib import dump, load
 
 # Path to dataset
 data_dir = '/home/gokulraj/Projects/GQNN/GQNN/examples/Employee_Salary_Dataset.csv'
@@ -28,7 +27,7 @@ y_train = np.array(y_train)
 x_test = np.array(x_test)    
 y_test = np.array(y_test)    
 
-num_qubits = x_train.shape[1]  
+num_qubits = x_train.shape[1]
 print(f"x_train shape: {x_train.shape}")
 print(f"x_train shape: {x_train.shape}")  
 print(f"y_train shape: {y_train.shape}")  

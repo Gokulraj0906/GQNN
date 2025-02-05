@@ -168,7 +168,7 @@ class QuantumClassifier_EstimatorQNN_CPU:
 """"This code will runs on Local computer """
 
 class QuantumClassifier_SamplerQNN_CPU:
-    def __init__(self, num_inputs:int, output_shape:int, ansatz_reps:int|int = 1, maxiter:int|int=30):
+    def __init__(self, num_inputs:int, output_shape:None|int = 2, ansatz_reps:int|int = 1, maxiter:int|int=30):
         """
         Initialize the QuantumClassifier with customizable parameters.
 
@@ -252,6 +252,18 @@ class QuantumClassifier_SamplerQNN_CPU:
         self.weights = self.classifier.weights
         plt.ioff()
         plt.show()
+    
+    def predict(self, X):
+        """
+        Predict labels for the input data.
+        
+        Args:
+            X (ndarray): Input data for prediction.
+        
+        Returns:
+            ndarray: Predicted labels.
+        """
+        return self.classifier.predict(X)
 
     def score(self, X, y):
         """
@@ -291,7 +303,7 @@ class VariationalQuantumClassifier_CPU:
 
     Attributes:
         num_inputs (int): Number of qubits/features in the quantum circuit.
-        max_iter (int): Maximum iterations for the optimizer.
+        maxiter (int): Maximum iterations for the optimizer.
         feature_map (QuantumCircuit): Feature map used for embedding classical data into a quantum state.
         ansatz (QuantumCircuit): Ansatz used as the variational component of the quantum circuit.
         sampler (Sampler): Backend for quantum computations.
@@ -299,13 +311,13 @@ class VariationalQuantumClassifier_CPU:
         objective_func_vals (list): List to store objective function values during training.
     """
 
-    def __init__(self, num_inputs: int = 2, max_iter: int = 30):
+    def __init__(self, num_inputs:int, maxiter:int|int = 30):
         """
         Initialize the VQC with a feature map, ansatz, and optimizer.
         
         Args:
             num_inputs (int): Number of qubits/features.
-            max_iter (int): Maximum iterations for the optimizer.
+            maxiter (int): Maximum iterations for the optimizer.
         """
         from qiskit.circuit.library import ZZFeatureMap, RealAmplitudes
         from qiskit_machine_learning.algorithms.classifiers import VQC
@@ -313,7 +325,7 @@ class VariationalQuantumClassifier_CPU:
         from qiskit.primitives import StatevectorSampler
 
         self.num_inputs = num_inputs
-        self.max_iter = max_iter
+        self.maxiter = maxiter
         self.objective_func_vals = []
         
         # Initialize feature map, ansatz, and sampler
@@ -326,7 +338,7 @@ class VariationalQuantumClassifier_CPU:
             feature_map=self.feature_map,
             ansatz=self.ansatz,
             loss="cross_entropy",
-            optimizer=COBYLA(maxiter=self.max_iter),
+            optimizer=COBYLA(maxiter=self.maxiter),
             callback=self._callback_graph,
             sampler=self.sampler,
         )
@@ -361,6 +373,8 @@ class VariationalQuantumClassifier_CPU:
             X (np.ndarray): Training data (features).
             y (np.ndarray): Training data (labels).
         """
+        import numpy as np
+        y = np.array(y)
         import matplotlib.pyplot as plt
         plt.ion()  # Enable interactive mode for live plotting
         self.vqc.fit(X, y)

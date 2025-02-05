@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='GQNN',
-    version='0.1.1',
+    version='1.0.0',
     author='GokulRaj S',
     author_email='gokulsenthil0906@gmail.com', 
     description=(

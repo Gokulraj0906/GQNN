@@ -1,62 +1,63 @@
-import numpy as np
-import pandas as pd
-
 class DataSplitter:
-    def __init__(self, X: pd.DataFrame, y: pd.DataFrame, train_size: float, shuffle=True, random_state=None):
+    def __init__(self, X, y, train_size: float = 0.8,
+                 shuffle: bool = True, random_state: int = None):
         """
-        Initializes the DataSplitter class.
+        Initialize the data splitter with parameters for splitting data into training and testing sets.
 
-        Parameters:
-        - X: Feature DataFrame
-        - y: Target Series
-        - train_size: Proportion of the dataset to include in the train split (default is 0.8)
-        - shuffle: Whether to shuffle the data before splitting (default is True)
-        - random_state: Seed for random number generator (default is None)
+        Args:
+            X (DataFrame): Features dataframe.
+            y (DataFrame): Targets dataframe.
+            train_size (float, optional): Proportion of total samples allocated to training. Defaults to 0.8.
+            shuffle (bool, optional): Whether to shuffle the indices before splitting. Defaults to True.
+            random_state (int, optional): Seed for shuffling, ensuring reproducibility. Defaults to None.
         """
+        import sys
+        if sys.platform.startswith("linux"):
+            import fireducks.pandas as pd  
+        else:
+            import pandas as pd  
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+        if not isinstance(y, (pd.DataFrame, pd.Series)):
+            y = pd.DataFrame(y, columns=['Target'])
+        if not isinstance(train_size, float) or not (0 <= train_size <= 1):
+            raise ValueError("train_size must be a float between 0 and 1.")
+        if not isinstance(shuffle, bool):
+            raise ValueError("shuffle must be a boolean.")
+
         self.X = X
         self.y = y
         self.train_size = train_size
         self.shuffle = shuffle
         self.random_state = random_state
-        self.n_samples = len(X)
 
-        if self.random_state is not None:
-            np.random.seed(self.random_state)
-        if not isinstance(self.shuffle, bool):
-            raise ValueError("shuffle must be a boolean value")
-        if not (0 < self.train_size <= 1):
-            raise ValueError("train_size must be a float between 0 and 1")
-        if self.X.shape[0] != self.y.shape[0]:
-            raise ValueError("X and y must have the same number of samples")
-        if self.X.shape[0] == 0:
-            raise ValueError("X and y must have at least one sample")
-        if self.X.shape[0] == 1:
-            raise ValueError("X and y must have more than one sample")
-        if self.X.shape[1] == 0:
-            raise ValueError("X must have at least one feature")
-        if self.y.nunique() == 1:
-            raise ValueError("y must have more than one unique value")
+        self.n_samples = len(self.X)
+        if self.n_samples != len(self.y):
+            raise ValueError("X and y must have the same number of samples.")
 
     def split(self):
         """
-        Splits the data into training and testing sets.
+        Split the data into training and testing sets according to the given parameters.
 
         Returns:
-        - X_train: Training features
-        - X_test: Testing features
-        - y_train: Training target
-        - y_test: Testing target
+            tuple: (X_train, X_test, y_train, y_test) where each variable is a DataFrame.
         """
+        import numpy as np
         indices = np.arange(self.n_samples)
+
         if self.shuffle:
-            np.random.shuffle(indices)
+            if self.random_state is not None:
+                np.random.seed(self.random_state)  # Set seed for reproducibility
+            indices = np.random.permutation(indices)
 
-        train_indices = indices[:int(self.train_size * self.n_samples)]
-        test_indices = indices[int(self.train_size * self.n_samples):]
+        train_size_int = int(self.train_size * self.n_samples)
+        train_indices = indices[:train_size_int]
+        test_indices = indices[train_size_int:]
 
-        X_train = self.X.iloc[train_indices]
-        X_test = self.X.iloc[test_indices]
-        y_train = self.y.iloc[train_indices]
-        y_test = self.y.iloc[test_indices]
+        X_train, X_test = self.X.iloc[train_indices], self.X.iloc[test_indices]
+        y_train, y_test = self.y.iloc[train_indices], self.y.iloc[test_indices]
 
         return X_train, X_test, y_train, y_test
+
+    def __repr__(self):
+        return f"DataSplitter with {self.n_samples} samples, train_size={self.train_size}, shuffle={self.shuffle}"

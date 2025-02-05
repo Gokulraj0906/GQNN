@@ -9,7 +9,7 @@ training, and evaluating customized Quantum Neural Networks.
 Package Metadata:
 -----------------
 Author: GokulRaj S
-Version: 0.1.0
+Version: 1.0.0
 License: MIT
 Maintainer: GokulRaj S
 Email: gokulsenthil0906@gmail.com
@@ -72,7 +72,7 @@ from GQNN.data import pca
 __all__ = ["dataset","classification_model","data_split","rfe","pca","validation"]
 
 __author__ = "GokulRaj S"
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 __license__ = "MIT"
 __maintainer__ = "GokulRaj S"
 __email__ = "gokulsenthil0906@gmail.com"
@@ -80,8 +80,8 @@ __status__ = "Development"
 __description__ = "A Python package for Quantum Neural Networks"
 __keywords__ = "Quantum Neural Networks, Quantum Computing, Machine Learning, Neural Networks"
 __url__ = "https://www.gokulraj.tech/GQNN"
-__github_url__ = "https://github.com/gokulraj0906/GQNN"
-__documentation_url__ = "https://www.gokulraj.tech/GQNN/docs"
+__github_url__ = "https://github.com/gokulraj0906/gqnn"
+__documentation_url__ = "https://www.gokulraj.tech/gqnn_docs"
 __bug_report_url__ = "https://www.gokulraj.tech/GQNN/report"
 __funding_url__ = "https://www.gokulraj.tech/GQNN/support"
 __tutorial_url__ = "https://www.gokulraj.tech/GQNN/tutorials"
