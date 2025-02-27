@@ -1,0 +1,7 @@
+venv/
+*.txt
+*__pycache__/
+dist/
+build/
+*.joblib
+GQNN.egg-info/
