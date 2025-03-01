@@ -1,6 +1,8 @@
 # GQNN: A Python Package for Quantum Neural Networks
 
-GQNN is a pioneering Python library designed for research and experimentation with Quantum Neural Networks (GQNNs). By integrating principles of quantum computing with classical neural network architectures, GQNN enables researchers to explore hybrid models that leverage the computational advantages of quantum systems. This library was developed by **Gokul Raj S** as part of his research on Customized Quantum Neural Networks.
+[![PyPI Downloads](https://static.pepy.tech/badge/gqnn)](https://pepy.tech/projects/gqnn)
+
+GQNN is a pioneering Python library designed for research and experimentation with Quantum Neural Networks (QNNs). By integrating principles of quantum computing with classical neural network architectures, GQNN enables researchers to explore hybrid models that leverage the computational advantages of quantum systems. This library was developed by **GokulRaj S** as part of his research on Customized Quantum Neural Networks.
 
 ---
 
@@ -22,11 +24,11 @@ GQNN is a pioneering Python library designed for research and experimentation wi
 
 ## Introduction
 
-Quantum Neural Networks (GQNNs) are an emerging field of study combining the principles of quantum mechanics with artificial intelligence. The **GQNN** package offers a platform to implement and study hybrid quantum-classical neural networks, aiming to bridge the gap between theoretical quantum algorithms and practical machine learning applications.
+Quantum Neural Networks (QNNs) are an emerging field of study combining the principles of quantum mechanics with artificial intelligence. The **GQNN** package offers a platform to implement and study hybrid quantum-classical neural networks, aiming to bridge the gap between theoretical quantum algorithms and practical machine learning applications.
 
 This package allows you to:
 
-- Experiment with GQNN architectures.
+- Experiment with QNN architectures.
 - Train models on classical or quantum data.
 - Explore quantum-enhanced learning algorithms.
 - Conduct research in Quantum Machine Learning.
@@ -36,7 +38,7 @@ This package allows you to:
 ## Features
 
 - **Hybrid Neural Networks**: Combines classical and quantum layers seamlessly.
-- **Custom Quantum Circuits**: Design and implement your quantum gates and circuits.
+- **Custom Quantum Circuits**: Design and implement your own quantum gates and circuits.
 - **Lightweight and Flexible**: Built with Python, NumPy, and scikit-learn for simplicity and extensibility.
 - **Scalable**: Easily scale models for larger qubit configurations or datasets.
 - **Research-Oriented**: Ideal for academic and experimental use in quantum machine learning.
@@ -50,7 +52,7 @@ This package allows you to:
 - Ensure pip is updated: `pip install --upgrade pip`
 
 ### Installing GQNN
-#### From PyPI (when published)
+#### From PyPI
 ```bash
 pip install GQNN
 ```
@@ -71,14 +73,13 @@ pip install .
 from GQNN.data.dataset import Data_Read
 from GQNN.models.data_split import DataSplitter
 from GQNN.models.Linear_model import QuantumClassifier_EstimatorQNN
-import numpy as np 
+import numpy as np
 
 # Path to the dataset
 data_dir = 'Employee_Salary_Dataset.csv'
 
 # Read and preprocess the dataset
 df = Data_Read.Read_csv(data_dir)
-
 print("Original DataFrame (after reading and cleaning):")
 print(df.head())
 
@@ -115,7 +116,6 @@ model.print_model()
 score = model.score(x_test, y_test)
 adjusted_score = 1 - score
 print(f"Model accuracy (adjusted): {adjusted_score * 100:.2f}%")
-
 ```
 
 ### Advanced Usage
@@ -127,7 +127,7 @@ For more advanced configurations, such as custom quantum gates or layers, refer 
 
 GQNN can be used for:
 1. **Research and Development**: Experiment with quantum-enhanced machine learning algorithms.
-2. **Education**: Learn and teach quantum computing principles via GQNNs.
+2. **Education**: Learn and teach quantum computing principles via QNNs.
 3. **Prototyping**: Develop proof-of-concept models for quantum computing applications.
 4. **Hybrid Systems**: Integrate classical and quantum systems for real-world data processing.
 
@@ -150,14 +150,14 @@ The following dependencies are required to use GQNN:
 - NumPy
 - Pandas
 - scikit-learn
-- Qiskit 
+- Qiskit
 - Qiskit-machine-learning
-- Qiski_ibm_runtime
+- Qiskit_ibm_runtime
 - matplotlib
 - ipython
 - pylatexenc
 
-## For Linux User 
+### For Linux Users
 ```bash
 pip install GQNN[linux]
 ```
@@ -202,7 +202,7 @@ GQNN is licensed under the MIT License. See the [LICENSE](LICENSE) file for full
 
 ## Acknowledgements
 
-- This package is a result of research work by **GokulRaj.S**.
+- This package is a result of research work by **GokulRaj S**.
 - Special thanks to the open-source community and the developers of foundational quantum computing tools.
 - Inspired by emerging trends in Quantum Machine Learning.
 
@@ -212,7 +212,7 @@ GQNN is licensed under the MIT License. See the [LICENSE](LICENSE) file for full
 
 For queries, feedback, or collaboration opportunities, please reach out:
 
-**Author**: GokulRaj.S  
+**Author**: GokulRaj S  
 **Email**: gokulsenthil0906@gmail.com  
 **GitHub**: [gokulraj0906](https://github.com/gokulraj0906)  
 **LinkedIn**: [Gokul Raj](https://www.linkedin.com/in/gokulraj0906)
@@ -220,3 +220,4 @@ For queries, feedback, or collaboration opportunities, please reach out:
 ---
 
 Happy Quantum Computing! 🚀
+
