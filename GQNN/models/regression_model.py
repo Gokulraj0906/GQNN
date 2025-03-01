@@ -139,9 +139,7 @@ class QuantumRegressor_EstimatorQNN_CPU:
         import matplotlib.pyplot as plt
         if hasattr(self, 'qc') and self.qc is not None:
             try:
-                fig, ax = plt.subplots()
-                self.qc.decompose().draw(output='mpl', ax=ax)
-                fig.savefig(file_name)
+                self.qc.decompose().draw(output='mpl').savefig(file_name)
                 print(f"Circuit image saved as {file_name}")
             except Exception as e:
                 print(f"Error displaying quantum circuit: {e}")
@@ -289,9 +287,7 @@ class QuantumRegressor_VQR_CPU:
         """
         import matplotlib.pyplot as plt
         try:
-            fig, ax = plt.subplots()
-            self.feature_map.decompose().draw(output='mpl', ax=ax)
-            fig.savefig(file_name)
+            self.feature_map.decompose().draw(output='mpl').savefig(file_name)
             print(f"Circuit image saved as {file_name}")
         except Exception as e:
             print(f"Error displaying quantum circuit: {e}")
