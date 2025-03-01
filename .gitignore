@@ -5,3 +5,4 @@ dist/
 build/
 *.joblib
 GQNN.egg-info/
+*.model

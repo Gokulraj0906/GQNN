@@ -3,7 +3,7 @@ from GQNN.models.data_split import DataSplitter
 from GQNN.models.classification_model import QuantumClassifier_EstimatorQNN_CPU, QuantumClassifier_SamplerQNN_CPU,VariationalQuantumClassifier_CPU
 import numpy as np
 from GQNN.models.regression_model import QuantumRegressor_EstimatorQNN_CPU
-
+from joblib import dump
 # Path to dataset
 data_dir = 'D:\\Projects\\GQNN\\GQNN\\examples\\Employee_Salary_Dataset.csv'
 
@@ -70,7 +70,8 @@ regression_model.fit(x_train, y_train)
 
 # Print the trained model's parameters
 regression_model.print_model()
+# dump(regression_model, 'EstimatorQNN_model.model')
 
 model_2_score = regression_model.score(x_test, y_test)
 
-print(f"Model accuracy (VariationalQuantumClassifier_CPU): {model_2_score * 100:.2f}%")
+print(f"Model accuracy : {model_2_score * 100:.2f}%")

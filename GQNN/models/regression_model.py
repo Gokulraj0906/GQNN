@@ -37,7 +37,7 @@ class QuantumRegressor_EstimatorQNN_CPU:
             Saves the quantum circuit as an image and prints the model weights.
     """
     
-    def __init__(self, num_qubits: int, maxiter: int = 30):
+    def __init__(self, num_qubits: int, maxiter: int | int = 30):
         """
         Initializes the QuantumRegressor with the specified parameters.
         
@@ -59,7 +59,7 @@ class QuantumRegressor_EstimatorQNN_CPU:
         self.optimizer = COBYLA(maxiter=maxiter)
         self.regressor = NeuralNetworkRegressor(
             neural_network=self.estimator_qnn,
-            loss="squared_error",
+            loss="absolute_error",
             optimizer=self.optimizer,
             callback=self._callback_graph
         )
@@ -172,7 +172,7 @@ class QuantumRegressor_VQR_CPU:
         weights (np.ndarray or None): Learned weights of the trained quantum model.
     """
     
-    def __init__(self, num_qubits: int = 1, maxiter: int = 5):
+    def __init__(self, num_qubits: int , maxiter: int |int = 5):
         """
         Initializes the Quantum Regressor with the given number of qubits and optimization iterations.
 
