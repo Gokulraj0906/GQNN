@@ -9,73 +9,59 @@ class Data_Read:
         data_path (str): Path to the dataset file.
         df (pd.DataFrame): The DataFrame containing the dataset.
     """
+    import platform
+    if platform.system().lower() == "linux":
+        try:
+            import fireducks.pandas as pd
+            print("🚀 Linux Kernel detected! Time to unleash the power of open-source computing! 🐧")
+        except ImportError:
+            import pandas as pd
+            print("🚀 Linux detected, but fireducks.pandas is not available. Using standard pandas.")
+    else:
+        import pandas as pd
+        if platform.system().lower() == "darwin":
+            print("🍏 macOS detected! Let's innovate with style and efficiency! 🚀")
+        else:
+            print("🌍 Running on Windows! Let's make some magic happen across platforms! 🎩✨")
+
     def __init__(self):
+        """Initializes the Data_Read class with default attributes."""
         self.data_path = None
         self.df = None
     
-    import platform
-
-    system_name = platform.system().lower()
-
-    if system_name == "linux":
-        import fireducks.pandas as pd
-    elif system_name == "darwin":  # macOS
-        import pandas as pd
-    else:
-        import pandas as pd
-
-    if 'fireducks.pandas' in pd.__name__:
-        print("🚀 Linux Kernel detected! Time to unleash the power of open-source computing! 🐧")
-    elif 'macducks.pandas' in pd.__name__:
-        print("🍏 macOS detected! Let's innovate with style and efficiency! 🚀")
-    else:
-        print("🌍 Running on Windows! Let's make some magic happen across platforms! 🎩✨")
-
-
     @staticmethod
-    def _clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    def __clean_data(df: pd.DataFrame) -> pd.DataFrame:
         """
-        Cleans the dataset by removing duplicate rows, handling missing values, and removing outliers.
+        Cleans the dataset by:
+        - Removing duplicate rows
+        - Handling missing values efficiently with forward and backward filling
 
         Args:
-            df (pd.DataFrame): The input DataFrame to be cleaned.
+            df (pd.DataFrame): The input dataframe.
 
         Returns:
-            pd.DataFrame: A cleaned DataFrame with duplicates, missing values handled, and outliers removed.
+            pd.DataFrame: A cleaned dataframe without duplicates and efficiently handled missing values.
         """
-        df = df.drop_duplicates()
-
-        numerical_columns = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
-        categorical_columns = df.select_dtypes(include=['object']).columns.tolist()
-
-        df[numerical_columns] = df[numerical_columns].fillna(df[numerical_columns].mean())
-
-        df[categorical_columns] = df[categorical_columns].fillna(df[categorical_columns].mode().iloc[0])
-
-        Q1 = df[numerical_columns].quantile(0.25)
-        Q3 = df[numerical_columns].quantile(0.75)
-        IQR = Q3 - Q1
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
-
-        df = df[~((df[numerical_columns] < lower_bound) | (df[numerical_columns] > upper_bound)).any(axis=1)]
-
+        df.drop_duplicates(inplace=True)
+        df.dropna(how='all', inplace=True)  # Drop rows where all values are NaN
+        df.fillna(method='ffill', inplace=True)  # Forward fill missing values
+        df.fillna(method='bfill', inplace=True)  # Backward fill remaining missing values
         return df
 
     @staticmethod
     def _get_file_path(data_path: str, file_extension: str) -> str:
-        """
-        Finds the first file with the specified extension in the directory or verifies the file path.
-
+        """ 
+        Retrieves the file path, whether it's a directory or a specific file.
+        
         Args:
-            data_path (str): Directory path or file path.
-            file_extension (str): The file extension to look for (e.g., '.csv').
-
+            data_path (str): The path to the dataset.
+            file_extension (str): The expected file extension.
+        
         Returns:
-            str: Full file path of the first file matching the extension.
-
+            str: The resolved file path.
+        
         Raises:
-            FileNotFoundError: If no matching file is found in the directory or if the path is invalid.
+            FileNotFoundError: If no file is found or an incorrect path is given.
         """
         import os
         if os.path.isdir(data_path):
@@ -94,164 +80,111 @@ class Data_Read:
     @classmethod
     def convert_strings_to_numeric(cls, columns: list = None) -> pd.DataFrame:
         """
-        Converts string-type columns into numeric features using One-Hot Encoding.
-
+        Converts categorical string columns into numeric using One-Hot Encoding.
+        This transformation is applied only if explicitly requested.
+        
         Args:
-            columns (list, optional): List of column names to convert. If None, all string-type columns are converted.
-
+            columns (list, optional): List of columns to convert. Defaults to all string columns.
+        
         Returns:
-            pd.DataFrame: The updated DataFrame with string columns converted to numeric.
-
+            pd.DataFrame: The transformed dataframe with categorical values encoded.
+        
         Raises:
-            ValueError: If no data is loaded or if non-string columns are included in the specified list.
+            ValueError: If the dataframe is empty or specified columns are not of type 'object'.
         """
-        import platform
-
-        if platform.system().lower() == "linux":
-            import fireducks.pandas as pd
-        else:
-            import pandas as pd
-
         if cls.df is None:
             raise ValueError("No data available to convert. Please read data first.")
-
+        
         if columns is None:
             columns = cls.df.select_dtypes(include=['object']).columns.tolist()
-
+        
         non_string_columns = [col for col in columns if cls.df[col].dtype != 'object']
         if non_string_columns:
             raise ValueError(f"Columns {non_string_columns} are not of string type.")
-
-        cls.df = pd.get_dummies(cls.df, columns=columns, drop_first=True)
-
+        
+        cls.df = cls.pd.get_dummies(cls.df, columns=columns, drop_first=True)
         return cls.df
 
     @classmethod
-    def Read_csv(cls, data_path: str) -> pd.DataFrame:
+    def Read_csv(cls, data_path: str, convert_strings: bool = False) -> pd.DataFrame:
         """
-        Reads a CSV file from a directory or file path and returns a cleaned DataFrame.
-
-        Args:
-            data_path (str): Directory path or file path for the CSV file.
-
-        Returns:
-            pd.DataFrame: Cleaned DataFrame.
-        """
-        import platform
-
-        if platform.system().lower() == "linux":
-            import fireducks.pandas as pd
-        else:
-            import pandas as pd
+        Reads a CSV file and loads it into a dataframe.
+        Optionally, categorical string columns can be converted to numeric.
         
+        Args:
+            data_path (str): Path to the CSV file.
+            convert_strings (bool, optional): Whether to convert string columns to numeric. Defaults to False.
+        
+        Returns:
+            pd.DataFrame: The loaded and cleaned dataframe.
+        """
         path = cls._get_file_path(data_path, '.csv')
-        cls.data_path = path 
-        df = pd.read_csv(path)
-        cls.df = cls._clean_data(df) 
-        return cls.df
-
-    @classmethod
-    def Read_excel(cls, data_path: str) -> pd.DataFrame:
-        """
-        Reads an Excel file from a directory or file path and returns a cleaned DataFrame.
-
-        Args:
-            data_path (str): Directory path or file path for the Excel file.
-
-        Returns:
-            pd.DataFrame: Cleaned DataFrame.
-        """
-        import platform
-
-        if platform.system().lower() == "linux":
-            import fireducks.pandas as pd
-        else:
-            import pandas as pd
-    
-        path = cls._get_file_path(data_path, '.xlsx')
-        cls.data_path = path 
-        df = pd.read_excel(path)
-        cls.df = cls._clean_data(df)  
-        return cls.df
-
-    @classmethod
-    def Read_json(cls, data_path: str) -> pd.DataFrame:
-        """
-        Reads a JSON file from a directory or file path and returns a cleaned DataFrame.
-
-        Args:
-            data_path (str): Directory path or file path for the JSON file.
-
-        Returns:
-            pd.DataFrame: Cleaned DataFrame.
-        """
-        import platform
-
-        if platform.system().lower() == "linux":
-            import fireducks.pandas as pd
-        else:
-            import pandas as pd
+        cls.data_path = path
+        df = cls.pd.read_csv(path)
+        cls.df = cls.__clean_data(df)
         
-        path = cls._get_file_path(data_path, '.json')
-        cls.data_path = path  
-        df = pd.read_json(path)
-        cls.df = cls._clean_data(df)
+        if convert_strings:
+            cls.convert_strings_to_numeric()
+        
         return cls.df
 
     @classmethod
-    def Read_sql(cls, data_path: str, query: str) -> pd.DataFrame:
+    def Read_excel(cls, data_path: str, convert_strings: bool = False) -> pd.DataFrame:
         """
-        Reads data from a SQL database using a query and returns a cleaned DataFrame.
-
+        Reads an Excel file and loads it into a dataframe.
+        Optionally, categorical string columns can be converted to numeric.
+        
         Args:
-            data_path (str): Path to the SQLite database file.
-            query (str): SQL query to execute.
-
+            data_path (str): Path to the Excel file.
+            convert_strings (bool, optional): Whether to convert string columns to numeric. Defaults to False.
+        
         Returns:
-            pd.DataFrame: Cleaned DataFrame.
+            pd.DataFrame: The loaded and cleaned dataframe.
         """
-        import platform
-
-        if platform.system().lower() == "linux":
-            import fireducks.pandas as pd
-        else:
-            import pandas as pd
-
-        import sqlite3
-        conn = sqlite3.connect(data_path)
-        df = pd.read_sql_query(query, conn)
-        conn.close()
-        cls.df = cls._clean_data(df) 
+        path = cls._get_file_path(data_path, '.xlsx')
+        cls.data_path = path
+        df = cls.pd.read_excel(path)
+        cls.df = cls.__clean_data(df)
+        
+        if convert_strings:
+            cls.convert_strings_to_numeric()
+        
         return cls.df
-    
+
     @classmethod
     def Scale_data(cls, method: str = 'minmax', columns: list = None) -> pd.DataFrame:
         """
-        Scales numeric data using the specified scaling method.
-
+        Scales numeric data using different scaling methods.
+        
+        Available scaling methods:
+            - 'minmax': Min-Max Scaling (values between 0 and 1)
+            - 'zscale': Standard Scaling (mean = 0, std = 1)
+            - 'robust': Robust Scaling (handles outliers)
+        
         Args:
-            method (str, optional): Scaling method ('minmax', 'zscale', 'robust'). Default is 'minmax'.
-            columns (list, optional): List of column names to scale. If None, all numeric columns are scaled.
-
+            method (str, optional): The scaling method to use. Defaults to 'minmax'.
+            columns (list, optional): List of numeric columns to scale. Defaults to all numeric columns.
+        
         Returns:
-            pd.DataFrame: DataFrame with scaled columns.
-
+            pd.DataFrame: The dataframe with scaled values.
+        
         Raises:
-            ValueError: If no data is loaded or if non-numeric columns are included in the specified list.
+            ValueError: If the dataframe is empty or specified columns are non-numeric.
         """
         from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
+        
         if cls.df is None:
             raise ValueError("No data available to scale. Please read data first.")
         
         if columns is None:
             columns = cls.df.select_dtypes(include=['number']).columns.tolist()
-
+        
         non_numeric_columns = [col for col in columns if cls.df[col].dtype not in ['float64', 'int64']]
         if non_numeric_columns:
             raise ValueError(f"Columns {non_numeric_columns} are non-numeric and cannot be scaled.")
-
+        
         data_to_scale = cls.df[columns]
-
+        
         if method == 'minmax':
             scaler = MinMaxScaler()
         elif method == 'zscale':
@@ -260,9 +193,9 @@ class Data_Read:
             scaler = RobustScaler()
         else:
             raise ValueError("Unsupported scaling method. Choose from 'minmax', 'zscale', 'robust'.")
-
+        
         scaled_data = scaler.fit_transform(data_to_scale)
         scaled_df = cls.df.copy()
         scaled_df[columns] = scaled_data
-
+        
         return scaled_df

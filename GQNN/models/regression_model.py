@@ -51,12 +51,14 @@ class QuantumRegressor_EstimatorQNN_CPU:
         from qiskit_machine_learning.neural_networks import EstimatorQNN
         from qiskit_machine_learning.circuit.library import QNNCircuit
         from qiskit.primitives import StatevectorEstimator as Estimator
-        
+        from qiskit_machine_learning.optimizers import SPSA
+        self.optimizer = SPSA(maxiter=maxiter)
+
         algorithm_globals.random_seed = 42
         self.qc = QNNCircuit(num_qubits)
         self.estimator = Estimator()
         self.estimator_qnn = EstimatorQNN(circuit=self.qc, estimator=self.estimator)
-        self.optimizer = COBYLA(maxiter=maxiter)
+        # self.optimizer = COBYLA(maxiter=maxiter)
         self.regressor = NeuralNetworkRegressor(
             neural_network=self.estimator_qnn,
             loss="absolute_error",
@@ -131,24 +133,36 @@ class QuantumRegressor_EstimatorQNN_CPU:
     
     def print_model(self, file_name="quantum_circuit.png"):
         """
-        Saves the quantum circuit as an image and prints model details.
+        Saves the quantum circuit as a high-resolution image and prints model details.
         
         Args:
             file_name (str): The filename to save the quantum circuit diagram.
         """
         import matplotlib.pyplot as plt
+
         if hasattr(self, 'qc') and self.qc is not None:
             try:
-                self.qc.decompose().draw(output='mpl').savefig(file_name)
+                # Directly use self.qc instead of self.qc.circuit
+                circuit = self.qc  # QNNCircuit itself is a circuit
+                
+                # Create a high-resolution figure
+                fig, ax = plt.subplots(figsize=(12, 8), dpi=300)
+                circuit.decompose().draw(output='mpl', ax=ax)
+                
+                # Save with high resolution
+                plt.savefig(file_name, dpi=300, bbox_inches='tight')
+                plt.close(fig)
+
                 print(f"Circuit image saved as {file_name}")
             except Exception as e:
                 print(f"Error displaying quantum circuit: {e}")
         else:
             print("Quantum circuit is not initialized.")
 
-        print("Quantum Neural Network Model:")
-        print(self.qc)
-        print("Model Weights: ", self.weights)
+        print("\nQuantum Neural Network Model:")
+        print(self.qc)  # Print self.qc directly
+        print("\nModel Weights:")
+        print(self.weights if self.weights is not None else "Model not trained yet.")
 
 """"This code will runs on Local computer """
 

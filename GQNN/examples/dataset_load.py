@@ -4,6 +4,7 @@ from GQNN.models.classification_model import QuantumClassifier_EstimatorQNN_CPU,
 import numpy as np
 from GQNN.models.regression_model import QuantumRegressor_EstimatorQNN_CPU,QuantumRegressor_VQR_CPU
 from joblib import dump
+from sklearn.datasets import load_diabetes
 # Path to dataset
 data_dir = 'D:\\Projects\\GQNN\\GQNN\\examples\\Employee_Salary_Dataset.csv'
 
@@ -34,17 +35,17 @@ print(f"x_train shape: {x_train.shape}")
 print(f"y_train shape: {y_train.shape}")  
 
 # Initialize and train the Quantum Neural Network model
-# model = QuantumClassifier_EstimatorQNN_CPU(num_qubits=4, maxiter=60)
-# model.fit(x_train, y_train)
+model = QuantumClassifier_EstimatorQNN_CPU(num_qubits=4, maxiter=60)
+model.fit(x_train, y_train)
 
-# # Print the trained model's parameters
+# Print the trained model's parameters
 # model.print_model()
 
-# # Evaluate the model and compute accuracy
-# score = model.score(x_test, y_test)
+# Evaluate the model and compute accuracy
+score = model.score(x_test, y_test)
 # adjusted_score = 1 - score
-# print(f"Model accuracy (adjusted): {adjusted_score * 100:.2f}%")
-
+print(f"Model accuracy (adjusted): {score * 100:.2f}%")
+model.print_quantum_circuit()
 # model_1 = QuantumClassifier_SamplerQNN_CPU(num_inputs=4, output_shape=2, ansatz_reps=1,maxiter=35)
 # model_1.fit(x_train, y_train)
 
@@ -65,13 +66,13 @@ print(f"y_train shape: {y_train.shape}")
 
 # print(f"Model accuracy (VariationalQuantumClassifier_CPU): {model_2_score * 100:.2f}%")
 
-regression_model = QuantumRegressor_EstimatorQNN_CPU(num_qubits=num_qubits,maxiter=40)
-regression_model.fit(x_train, y_train)
+# regression_model = QuantumRegressor_EstimatorQNN_CPU(num_qubits=num_qubits,maxiter=40)
+# regression_model.fit(x_train, y_train)
 
-# Print the trained model's parameters
-regression_model.print_model()
-# dump(regression_model, 'EstimatorQNN_model.model')
+# # Print the trained model's parameters
+# regression_model.print_model()
+# # dump(regression_model, 'EstimatorQNN_model.model')
 
-model_2_score = regression_model.score(x_test, y_test)
+# model_2_score = regression_model.score(x_test, y_test)
 
-print(f"Model accuracy : {model_2_score * 100:.2f}%")
+# print(f"Model accuracy : {model_2_score * 100:.2f}%")

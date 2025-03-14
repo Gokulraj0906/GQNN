@@ -7,3 +7,13 @@ build/
 GQNN.egg-info/
 *.model
 *.env
+*.log
+*.csv
+*.pkl
+*.json
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.ipynb
+*.html

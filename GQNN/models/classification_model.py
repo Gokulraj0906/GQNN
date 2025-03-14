@@ -1,168 +1,66 @@
-
-""""This code will runs on Local computer """
+import torch
+import matplotlib.pyplot as plt
+from qiskit.visualization import circuit_drawer
 
 class QuantumClassifier_EstimatorQNN_CPU:
-    """
-    A quantum machine learning classifier that utilizes a quantum neural network (QNN) for classification tasks.
-    
-    This Model Will Runs on the Local Computer.
-
-    This classifier uses a quantum circuit (QNNCircuit) as the model, and employs the COBYLA optimizer 
-    to train the quantum model. The training process updates the objective function, which is visualized during 
-    training via a callback method. The class provides methods for training, predicting, evaluating accuracy, 
-    saving, and loading the model.
-
-    Attributes:
-        qc (QNNCircuit): Quantum circuit representing the quantum neural network.
-        estimator (Estimator): Estimator for measuring the quantum states.
-        estimator_qnn (EstimatorQNN): The quantum neural network that integrates the quantum circuit and estimator.
-        optimizer (COBYLA): Optimizer used to train the quantum neural network.
-        classifier (NeuralNetworkClassifier): The neural network classifier that performs the training and prediction.
-        weights (numpy.ndarray): The weights of the trained model.
-        objective_func_vals (list): List to store the objective function values during training.
-    
-    Methods:
-        _callback_graph(weights, obj_func_eval):
-            Callback method to visualize and update the objective function during training.
-        
-        fit(X, y):
-            Trains the quantum classifier using the provided data (X, y).
-        
-        score(X, y):
-            Evaluates the accuracy of the trained model on the provided data (X, y).
-        
-        predict(X):
-            Predicts the labels for the input data (X).
-        
-        print_model():
-            Prints the quantum circuit and the model weights.
-        
-        save_model(file_path='quantum_model_weights.npy'):
-            Saves the model weights to a specified file.
-        
-        load_model(file_path='quantum_model_weights.npy'):
-            Loads the model weights from a specified file.
-    """
-    
-    
-    def __init__(self, num_qubits: int, maxiter: int|int=30):
-        """
-        Initializes the QuantumClassifier with the specified parameters.
-        
-        Args:
-            num_qubits (int): The number of qubits in the quantum circuit.
-            maxiter (int): The maximum number of iterations for the optimizer.
-        """
-        from qiskit_machine_learning.optimizers import COBYLA
-        from qiskit_machine_learning.algorithms.classifiers import NeuralNetworkClassifier
+    def __init__(self, num_qubits: int, maxiter: int = 30):
         from qiskit_machine_learning.neural_networks import EstimatorQNN
         from qiskit_machine_learning.circuit.library import QNNCircuit
         from qiskit.primitives import StatevectorEstimator as Estimator
+        from qiskit_machine_learning.connectors import TorchConnector
 
-
-        # Initialize quantum circuit, estimator, and neural network
         self.qc = QNNCircuit(num_qubits)
         self.estimator = Estimator()
         self.estimator_qnn = EstimatorQNN(circuit=self.qc, estimator=self.estimator)
+        self.model = TorchConnector(self.estimator_qnn)
 
-        # Initialize optimizer and classifier
-        self.optimizer = COBYLA(maxiter=maxiter)
-        self.classifier = NeuralNetworkClassifier(self.estimator_qnn, optimizer=self.optimizer, callback=self._callback_graph)
-        self.weights = None
+        # ✅ Use a faster optimizer (SGD)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.5, momentum=0.9)
 
-        # Store objective function values for visualization during training
-        self.objective_func_vals = []
-    
- 
-    def _callback_graph(self, weights, obj_func_eval):
-        """
-        Callback to update the objective function graph during training.
+        # ✅ Check if GPU is available
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
 
-        This method is called during training to update the objective function plot and save it as an image.
-        
-        Args:
-            weights (numpy.ndarray): The weights of the model during training.
-            obj_func_eval (float): The value of the objective function at the current iteration.
-        """
-        from IPython.display import clear_output
-        import matplotlib.pyplot as plt
-        import warnings
-        warnings.filterwarnings("ignore", category=UserWarning, message="FigureCanvasAgg is non-interactive")
-        clear_output(wait=True)
-        self.objective_func_vals.append(obj_func_eval)
-        plt.title("Objective Function Value During Training")
-        plt.xlabel("Iteration")
-        plt.ylabel("Objective Function Value")
-        plt.plot(range(len(self.objective_func_vals)), self.objective_func_vals, color='b')
-        plt.show()
-        plt.savefig('Training Graph.png')
+    def fit(self, X, y, epochs=15):  # ✅ Fewer epochs
+        X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
+        y_tensor = torch.tensor(y, dtype=torch.float32).view(-1, 1).to(self.device)
+        loss_fn = torch.nn.MSELoss()
+        loss_history = []
 
+        for epoch in range(epochs):
+            self.optimizer.zero_grad()
+            output = self.model(X_tensor)
+            loss = loss_fn(output, y_tensor)
+            loss.backward()
+            self.optimizer.step()
+            loss_history.append(loss.item())
+            print(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item()}")
 
-    def fit(self, X, y):
-        """
-        Trains the quantum classifier on the provided data.
-        
-        This method trains the model by fitting it to the input features (X) and labels (y).
-        
-        Args:
-            X (numpy.ndarray): The input feature data for training.
-            y (numpy.ndarray): The labels corresponding to the input features.
-        """
-        import matplotlib.pyplot as plt
-        plt.ion()  # Enable interactive mode for live plotting
-        self.classifier.fit(X, y)
-        self.weights = self.classifier.weights
-        plt.ioff()  # Disable interactive mode after training
-        plt.show()
+        # ✅ Plot loss after training (not during)
+        plt.plot(range(epochs), loss_history, 'b-o')
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.title("Training Loss Over Time")
+        plt.savefig("training_loss.png")
+        plt.close()
+        print("Training loss graph saved as 'training_loss.png'.")
+
+    def print_quantum_circuit(self):
+        print(self.qc)
+        circuit_drawer(self.qc.decompose(), output='mpl', filename="quantum_circuit.png")
+        print("Quantum circuit diagram saved as 'quantum_circuit.png'.")
+
+    def predict(self, X):
+        X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
+        with torch.no_grad():
+            predictions = self.model(X_tensor)
+        return predictions.cpu().numpy()
 
     def score(self, X, y):
-        """
-        Evaluates the accuracy of the trained classifier.
-        
-        Args:
-            X (numpy.ndarray): The input feature data for evaluation.
-            y (numpy.ndarray): The true labels corresponding to the input features.
-        
-        Returns:
-            float: The accuracy score of the model on the provided data.
-        """
-        return self.classifier.score(X, y)
-    
-    def predict(self, X):
-        """
-        Predicts the labels for the input data.
-        
-        Args:
-            X (numpy.ndarray): The input feature data to predict labels for.
-        
-        Returns:
-            numpy.ndarray: The predicted labels for the input data.
-        """
-        if self.weights is None:
-            raise ValueError("Model weights are not loaded or trained.")
-        return self.classifier.predict(X)
+        predictions = self.predict(X)
+        accuracy = (predictions.round() == y).mean()
+        return accuracy
 
-    def print_model(self,file_name="quantum_circuit.png"):
-        """
-        Returns the quantum circuit and the model's learned weights.
-        
-        This method draws the quantum circuit and returns it, along with the model's weights.
-        """
-        import matplotlib.pyplot as plt
-        if hasattr(self, 'qc') and self.qc is not None:
-            try:
-        
-                circuit = self.qc.decompose().draw(output='mpl')
-                circuit.savefig(file_name)
-                print(f"Circuit image saved as {file_name}") 
-            except Exception as e:
-                print(f"Error displaying quantum circuit: {e}")
-        else:
-            print("Quantum circuit is not initialized.")
-
-        print("Quantum Neural Network Model:")
-        print(self.qc)
-        print("Model Weights: ", self.weights)
 
 
 """"This code will runs on Local computer """
