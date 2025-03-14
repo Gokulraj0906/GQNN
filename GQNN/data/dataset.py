@@ -23,12 +23,14 @@ class Data_Read:
             print("🍏 macOS detected! Let's innovate with style and efficiency! 🚀")
         else:
             print("🌍 Running on Windows! Let's make some magic happen across platforms! 🎩✨")
-
+    
     def __init__(self):
-        """Initializes the Data_Read class with default attributes."""
+        """
+        Initializes the Data_Read class with default attributes.
+        """
         self.data_path = None
         self.df = None
-    
+
     @staticmethod
     def __clean_data(df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -43,9 +45,9 @@ class Data_Read:
             pd.DataFrame: A cleaned dataframe without duplicates and efficiently handled missing values.
         """
         df.drop_duplicates(inplace=True)
-        df.dropna(how='all', inplace=True)  # Drop rows where all values are NaN
-        df.fillna(method='ffill', inplace=True)  # Forward fill missing values
-        df.fillna(method='bfill', inplace=True)  # Backward fill remaining missing values
+        df.dropna(how='all', inplace=True)
+        df.fillna(method='ffill', inplace=True)
+        df.fillna(method='bfill', inplace=True)
         return df
 
     @staticmethod
@@ -78,34 +80,6 @@ class Data_Read:
             raise FileNotFoundError(f"Check the File Path for '{data_path}'")
 
     @classmethod
-    def convert_strings_to_numeric(cls, columns: list = None) -> pd.DataFrame:
-        """
-        Converts categorical string columns into numeric using One-Hot Encoding.
-        This transformation is applied only if explicitly requested.
-        
-        Args:
-            columns (list, optional): List of columns to convert. Defaults to all string columns.
-        
-        Returns:
-            pd.DataFrame: The transformed dataframe with categorical values encoded.
-        
-        Raises:
-            ValueError: If the dataframe is empty or specified columns are not of type 'object'.
-        """
-        if cls.df is None:
-            raise ValueError("No data available to convert. Please read data first.")
-        
-        if columns is None:
-            columns = cls.df.select_dtypes(include=['object']).columns.tolist()
-        
-        non_string_columns = [col for col in columns if cls.df[col].dtype != 'object']
-        if non_string_columns:
-            raise ValueError(f"Columns {non_string_columns} are not of string type.")
-        
-        cls.df = cls.pd.get_dummies(cls.df, columns=columns, drop_first=True)
-        return cls.df
-
-    @classmethod
     def Read_csv(cls, data_path: str, convert_strings: bool = False) -> pd.DataFrame:
         """
         Reads a CSV file and loads it into a dataframe.
@@ -122,10 +96,8 @@ class Data_Read:
         cls.data_path = path
         df = cls.pd.read_csv(path)
         cls.df = cls.__clean_data(df)
-        
         if convert_strings:
             cls.convert_strings_to_numeric()
-        
         return cls.df
 
     @classmethod
@@ -145,10 +117,46 @@ class Data_Read:
         cls.data_path = path
         df = cls.pd.read_excel(path)
         cls.df = cls.__clean_data(df)
-        
         if convert_strings:
             cls.convert_strings_to_numeric()
+        return cls.df
+
+    @classmethod
+    def Read_json(cls, data_path: str) -> pd.DataFrame:
+        """
+        Reads a JSON file and loads it into a dataframe.
         
+        Args:
+            data_path (str): Path to the JSON file.
+        
+        Returns:
+            pd.DataFrame: The loaded and cleaned dataframe.
+        """
+        path = cls._get_file_path(data_path, '.json')
+        cls.data_path = path
+        df = cls.pd.read_json(path)
+        cls.df = cls.__clean_data(df)
+        return cls.df
+
+    @classmethod
+    def Read_sql(cls, query: str, connection) -> pd.DataFrame:
+        """
+        Reads data from an SQL database using a query.
+        
+        Args:
+            query (str): The SQL query to execute.
+            connection (str or sqlite3.Connection): A database connection string or connection object.
+        
+        Returns:
+            pd.DataFrame: The loaded and cleaned dataframe.
+        """
+        import sqlite3
+        if isinstance(connection, str):
+            conn = sqlite3.connect(connection)
+        else:
+            conn = connection
+        df = cls.pd.read_sql_query(query, conn)
+        cls.df = cls.__clean_data(df)
         return cls.df
 
     @classmethod
