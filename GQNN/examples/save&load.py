@@ -1,38 +1,62 @@
-from GQNN.models.regression_model import QuantumRegressor_EstimatorQNN_CPU as QER
-# import pickle
-# model = QER(num_qubits=4)
-# model.load_model('D:\Projects\GQNN\EstimatorQNN_model.model')
-# model.print_model()
-# print("Loaded model weights:", model.weights)
+import numpy as np
+import torch
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
-# if model.weights is None:
-#     print("Restoring weights manually...")
-#     with open("EstimatorQNN_model_weights.pkl", "rb") as f:
-#         model.weights = pickle.load(f)
+from GQNN.models.classification_model import QuantumClassifier_EstimatorQNN_CPU
 
-# print("Loaded Model Weights:", model.weights)
+# Load Iris dataset
+iris = load_iris()
+X, y = iris.data, iris.target
+
+# Convert to binary classification (Setosa vs Non-Setosa)
+y = (y == 0).astype(int)
+
+# Normalize features
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Split into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+num_qubits = X.shape[1]  # Use number of features as qubits
+print(f"Number of qubits: {num_qubits}")
+qnn = QuantumClassifier_EstimatorQNN_CPU(num_qubits=num_qubits, batch_size=16, lr=0.1)
+
+# Train the model
+print("Training the Quantum Neural Network...")
+qnn.fit(X_train, y_train, epochs=10)
+
+# Evaluate the model
+accuracy = qnn.score(X_test, y_test)
+print(f"Test Accuracy: {accuracy:.4f}")
+
+print(qnn.print_quantum_circuit())
+
+# Save the model
+qnn.save_model()
+
+# # # # Load the model
+# # # model = qnn.load_model()
+# # # model.print_quantum_circuit()
 
 
-# from joblib import load
+# # model = QuantumClassifier_EstimatorQNN_CPU.load_model()
+# # import torch
 
-# model = load('D:\Projects\GQNN\EstimatorQNN_model.model')
-# print("Loaded model weights:", model.weights)
-# print("Model Type:", type(model))
-# print("Available Methods:", dir(model))  # Lists all available methods
-# print(model.predict([[0.11, 1, 3, 4]]))  # Predict using the loaded
+# # predictions = model.predict(X_test)
+# # predicted_classes = (predictions > 0.5).astype(int)
+# # print("Class Predictions:", predicted_classes)
+# # softmax = torch.nn.Softmax(dim=1)
+# # predictions_tensor = torch.tensor(predictions)
+# # probabilities = softmax(predictions_tensor)  # Convert raw scores into probabilities
+# # predicted_classes = torch.argmax(probabilities, dim=1).numpy()
+# # print("Class Predictions:", predicted_classes)
+# # print("Probabilities:", probabilities.detach().numpy())
 
-# if hasattr(model.neural_network, "summary"):
-#     model.neural_network.summary()
-# else:
-#     print("No summary method available.")
 
+# from GQNN.models.classification_model import QuantumClassifier_EstimatorQNN_CPU
 
-# model = QER.load_model('D:\Projects\GQNN\EstimatorQNN_model.model')
-# print("Type of loaded model:", type(model))  # Should be <class 'GQNN.models.RegressionModel'>
-
-# if isinstance(model, str):
-#     print("❌ ERROR: Model is a string instead of an object.")
-from qiskit.circuit.library import ZZFeatureMap, RealAmplitudes
-
-feature_map = ZZFeatureMap(2)  # Reduce complexity
-ansatz = RealAmplitudes(2, reps=1)  # Fewer reps reduce overfitting
+# model = QuantumClassifier_EstimatorQNN_CPU.load_model()
+# print(model.predict(X_test))

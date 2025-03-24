@@ -17,3 +17,4 @@ GQNN.egg-info/
 *.pdf
 *.ipynb
 *.html
+*.pth

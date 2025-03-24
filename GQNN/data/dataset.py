@@ -78,6 +78,35 @@ class Data_Read:
             return data_path
         else:
             raise FileNotFoundError(f"Check the File Path for '{data_path}'")
+    
+    @classmethod
+    def convert_strings_to_numeric(cls, columns: list = None) -> pd.DataFrame:
+        """
+        Converts categorical string columns into numeric using One-Hot Encoding.
+        This transformation is applied only if explicitly requested.
+        
+        Args:
+            columns (list, optional): List of columns to convert. Defaults to all string columns.
+        
+        Returns:
+            pd.DataFrame: The transformed dataframe with categorical values encoded.
+        
+        Raises:
+            ValueError: If the dataframe is empty or specified columns are not of type 'object'.
+        """
+        
+        if cls.df is None:
+            raise ValueError("No data available to convert. Please read data first.")
+        
+        if columns is None:
+            columns = cls.df.select_dtypes(include=['object']).columns.tolist()
+        
+        non_string_columns = [col for col in columns if cls.df[col].dtype != 'object']
+        if non_string_columns:
+            raise ValueError(f"Columns {non_string_columns} are not of string type.")
+        
+        cls.df = cls.pd.get_dummies(cls.df, columns=columns, drop_first=True)
+        return cls.df
 
     @classmethod
     def Read_csv(cls, data_path: str, convert_strings: bool = False) -> pd.DataFrame:

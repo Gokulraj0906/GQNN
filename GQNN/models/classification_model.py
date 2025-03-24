@@ -1,67 +1,147 @@
-import torch
-import matplotlib.pyplot as plt
-from qiskit.visualization import circuit_drawer
 
 class QuantumClassifier_EstimatorQNN_CPU:
-    def __init__(self, num_qubits: int, maxiter: int = 30):
+    def __init__(self, num_qubits: int, maxiter: int = 50, batch_size: int = 32, lr: float = 0.001):
+        import torch
+        import torch.nn as nn
+        import torch.optim as optim
         from qiskit_machine_learning.neural_networks import EstimatorQNN
         from qiskit_machine_learning.circuit.library import QNNCircuit
         from qiskit.primitives import StatevectorEstimator as Estimator
         from qiskit_machine_learning.connectors import TorchConnector
+
+        # Initialize model parameters and components
+        self.batch_size = batch_size
+        self.num_qubits = num_qubits
 
         self.qc = QNNCircuit(num_qubits)
         self.estimator = Estimator()
         self.estimator_qnn = EstimatorQNN(circuit=self.qc, estimator=self.estimator)
         self.model = TorchConnector(self.estimator_qnn)
 
-        # ✅ Use a faster optimizer (SGD)
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.5, momentum=0.9)
+        self.optimizer = optim.AdamW(self.model.parameters(), lr=lr)
+        self.loss_fn = nn.BCEWithLogitsLoss()
 
-        # ✅ Check if GPU is available
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
 
-    def fit(self, X, y, epochs=15):  # ✅ Fewer epochs
-        X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
-        y_tensor = torch.tensor(y, dtype=torch.float32).view(-1, 1).to(self.device)
-        loss_fn = torch.nn.MSELoss()
-        loss_history = []
+        for param in self.model.parameters():
+            if param.dim() > 1:
+                nn.init.xavier_uniform_(param)
+
+    def fit(self, X, y, epochs=20, patience=5):
+        from sklearn.preprocessing import StandardScaler
+        from torch.utils.data import DataLoader, TensorDataset
+        from tqdm import tqdm
+        import torch
+        scaler = StandardScaler()
+        X = scaler.fit_transform(X)
+
+        dataset = TensorDataset(torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.float32).view(-1, 1))
+        dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+
+        print("Training in progress...\n")
+        best_loss = float('inf')
+        wait = 0
+        training_losses = []
 
         for epoch in range(epochs):
-            self.optimizer.zero_grad()
-            output = self.model(X_tensor)
-            loss = loss_fn(output, y_tensor)
-            loss.backward()
-            self.optimizer.step()
-            loss_history.append(loss.item())
-            print(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item()}")
+            epoch_loss = 0
+            progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{epochs}", unit="batch", leave=False)
 
-        # ✅ Plot loss after training (not during)
-        plt.plot(range(epochs), loss_history, 'b-o')
-        plt.xlabel("Epoch")
+            for batch_X, batch_y in progress_bar:
+                batch_X, batch_y = batch_X.to(self.device), batch_y.to(self.device)
+
+                self.optimizer.zero_grad()
+                output = self.model(batch_X)
+                loss = self.loss_fn(output, batch_y)
+                loss.backward()
+
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+
+                self.optimizer.step()
+
+                epoch_loss += loss.item()
+                progress_bar.set_postfix(loss=f"{loss.item():.6f}")
+
+            avg_loss = epoch_loss / len(dataloader)
+            training_losses.append(avg_loss)
+
+            print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.6f}")
+
+            if avg_loss < best_loss:
+                best_loss = avg_loss
+                wait = 0
+            else:
+                wait += 1
+                if wait >= patience:
+                    print(f"Early stopping at epoch {epoch+1}")
+                    break
+
+        self.plot_training_graph(training_losses)
+
+    def plot_training_graph(self, training_losses):
+        import matplotlib.pyplot as plt
+        import matplotlib
+        matplotlib.use("Agg") 
+        plt.figure(figsize=(8, 6))
+        plt.plot(training_losses, label="Training Loss", color='b')
+        plt.xlabel("Epochs")
         plt.ylabel("Loss")
-        plt.title("Training Loss Over Time")
-        plt.savefig("training_loss.png")
-        plt.close()
-        print("Training loss graph saved as 'training_loss.png'.")
-
-    def print_quantum_circuit(self):
-        print(self.qc)
-        circuit_drawer(self.qc.decompose(), output='mpl', filename="quantum_circuit.png")
-        print("Quantum circuit diagram saved as 'quantum_circuit.png'.")
+        plt.title("Training Loss vs Epochs")
+        plt.legend()
+        plt.grid(True)
+        plt.savefig("Training_Loss_Graph.png",dpi=3000)
 
     def predict(self, X):
+        from sklearn.preprocessing import StandardScaler
+        import torch
+        X = StandardScaler().fit_transform(X)
         X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
+        self.model.eval()
+
         with torch.no_grad():
-            predictions = self.model(X_tensor)
-        return predictions.cpu().numpy()
+            raw_predictions = self.model(X_tensor)
+
+        probabilities = torch.sigmoid(raw_predictions)
+        predicted_classes = (probabilities > 0.5).int().cpu().numpy()
+
+        return predicted_classes, probabilities.cpu().numpy()
 
     def score(self, X, y):
-        predictions = self.predict(X)
-        accuracy = (predictions.round() == y).mean()
+        import torch
+        y_tensor = torch.tensor(y, dtype=torch.float32).view(-1, 1)
+        predictions, _ = self.predict(X)
+        accuracy = (predictions == y_tensor.numpy()).mean()
         return accuracy
 
+    def save_model(self, file_path="quantum_model.pth"):
+        import torch
+        torch.save({
+            'num_qubits': self.num_qubits,
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict()
+        }, file_path)
+        print(f"Model saved to {file_path}")
 
+    @classmethod
+    def load_model(cls, file_path="quantum_model.pth", lr=0.001):
+        import torch
+        checkpoint = torch.load(file_path, map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+        num_qubits = checkpoint['num_qubits']
+        model_instance = cls(num_qubits, lr=lr)
+
+        model_instance.model.load_state_dict(checkpoint['model_state_dict'])
+        model_instance.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+        print(f"Model loaded from {file_path}")
+        return model_instance
+
+    def print_quantum_circuit(self, file_path="quantum_circuit.png"):
+        from qiskit import QuantumCircuit
+        decomposed_circuit = self.qc.decompose()
+        decomposed_circuit.draw('mpl', filename=file_path)
+        print(f"Decomposed circuit saved to {file_path}")
+        print(f"The Circuit Is :\n{self.qc}")
 
 """"This code will runs on Local computer """
 
@@ -219,7 +299,6 @@ class VariationalQuantumClassifier_CPU:
         self.ansatz = RealAmplitudes(num_inputs, reps=1)
         self.sampler = StatevectorSampler()
         
-        # Initialize VQC model
         self.vqc = VQC(
             feature_map=self.feature_map,
             ansatz=self.ansatz,

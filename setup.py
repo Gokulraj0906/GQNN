@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='GQNN',
-    version='1.1.1',
+    version='1.4.4',
     author='GokulRaj S',
     author_email='gokulsenthil0906@gmail.com', 
     description=(
@@ -28,8 +28,7 @@ setup(
         'ipython',
         'matplotlib',
         'torch',
-        'torchvision',
-        'torchaudio',
+        'tqdm',
         
     ],
      extras_require={
@@ -58,5 +57,9 @@ setup(
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
-    python_requires='>=3.7', 
+    python_requires='>=3.7, <=3.11',
+    project_urls={
+        'Documentation': 'https://www.gokulraj.tech/GQNN/docs',
+        'Source': 'https://www.gokulraj.tech/GQNN',
+    },
 )
