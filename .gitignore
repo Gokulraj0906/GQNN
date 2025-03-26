@@ -1,4 +1,4 @@
-venv/
+.venv/
 *.txt
 *__pycache__/
 dist/

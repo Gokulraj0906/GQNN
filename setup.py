@@ -25,7 +25,6 @@ setup(
         'qiskit_ibm_runtime',
         'qiskit-machine-learning',
         'pylatexenc',
-        'ipython',
         'matplotlib',
         'torch',
         'tqdm',
@@ -57,7 +56,7 @@ setup(
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
-    python_requires='>=3.7, <=3.11',
+    python_requires='>=3.7, <=3.12',
     project_urls={
         'Documentation': 'https://www.gokulraj.tech/GQNN/docs',
         'Source': 'https://www.gokulraj.tech/GQNN',
