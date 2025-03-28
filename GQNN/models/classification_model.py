@@ -25,6 +25,8 @@ class QuantumClassifier_EstimatorQNN_CPU:
         for param in self.model.parameters():
             if param.dim() > 1:
                 nn.init.xavier_uniform_(param)
+        
+        print(f"Model initialized with {self.num_qubits} qubits, batch size {self.batch_size}, and learning rate {self.lr}")
 
     def fit(self, X, y, epochs=20, patience=5):
         from sklearn.preprocessing import StandardScaler
@@ -134,7 +136,7 @@ class QuantumClassifier_EstimatorQNN_CPU:
         print(f"Model loaded from {file_path}")
         return model_instance
 
-    def print_quantum_circuit(self, file_name="quantum_circuit.png"):
+    def print_quantum_circuit(self, file_name="quantum_EstimatorQNN_circuit.png"):
         from qiskit import QuantumCircuit
         decomposed_circuit = self.qc.decompose()
         decomposed_circuit.draw('mpl', filename=file_name)
@@ -142,15 +144,14 @@ class QuantumClassifier_EstimatorQNN_CPU:
         print(f"The Circuit Is :\n{self.qc}")
 
 """"This code will runs on Local computer """
-
 class QuantumClassifier_SamplerQNN_CPU:
-    def __init__(self, num_qubits: int, batch_size: int = 32, lr: float = 0.001, 
+    def __init__(self, num_qubits: int, batch_size: int = 32, lr: float = 0.001,
                  output_shape: int = 2, ansatz_reps: int = 1, maxiter: int = 30):
         """
         Initialize the QuantumClassifier with customizable parameters.
 
         Args:
-            num_inputs (int): Number of inputs for the feature map and ansatz.
+            num_qubits (int): Number of inputs for the feature map and ansatz.
             batch_size (int): Batch size for training.
             lr (float): Learning rate.
             output_shape (int): Number of output classes for the QNN.
@@ -166,49 +167,64 @@ class QuantumClassifier_SamplerQNN_CPU:
         from qiskit_machine_learning.algorithms.classifiers import NeuralNetworkClassifier
         from qiskit_machine_learning.connectors import TorchConnector
         from qiskit_machine_learning.optimizers import COBYLA
-        from qiskit import QuantumCircuit
+
+        from qiskit_machine_learning.circuit.library import QNNCircuit
+        import warnings
+        warnings.filterwarnings("ignore")
         self.batch_size = batch_size
         self.num_inputs = num_qubits
         self.output_shape = output_shape
         self.ansatz_reps = ansatz_reps
+        self.lr = lr
+
+        self.qnn_circuit = QNNCircuit(ansatz=RealAmplitudes(self.num_inputs, reps=self.ansatz_reps))
+
         self.sampler = Sampler()
-        self.objective_func_vals = []
-
-        # Define Quantum Circuit
-        self.qnn_circuit = QuantumCircuit(self.num_inputs)
-        self.qnn_circuit.compose(RealAmplitudes(self.num_inputs, reps=self.ansatz_reps), inplace=True)
-
-        # Define Quantum Neural Network
         self.qnn = SamplerQNN(
             circuit=self.qnn_circuit,
-            interpret=None,  # Explicitly set to None
+            input_params=self.qnn_circuit.parameters[:self.num_inputs],
+            weight_params=self.qnn_circuit.parameters[self.num_inputs:],
             output_shape=self.output_shape,
             sampler=self.sampler,
         )
 
-        # Define Classifier
         self.classifier = NeuralNetworkClassifier(
             neural_network=self.qnn,
             optimizer=COBYLA(maxiter=maxiter),
             callback=self.plot_training_graph
         )
 
-        # Convert QNN to PyTorch Model
-        self.model = TorchConnector(self.classifier)
+        self.model = TorchConnector(self.classifier.neural_network)
         self.optimizer = optim.AdamW(self.model.parameters(), lr=lr)
-        self.loss_fn = nn.BCEWithLogitsLoss()
+        self.loss_fn = nn.CrossEntropyLoss()
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
 
+        self._initialize_weights()
+
+        try:
+            if self.num_inputs < 4:
+                raise ValueError("The Current Model is Able to Trains Under 4 Qubits please Do the Rfe And Select The 4 required Columns .")
+            if self.batch_size is None:
+                raise ValueError("batch_size must be specified.")
+            if self.lr is None:
+                raise ValueError("learning_rate must be specified.")
+        except ValueError as e:
+            print(f"Error: {e}")
+        print(f"Model initialized with {self.num_inputs} qubits, batch size {self.batch_size}, and learning rate {self.lr}")
+
+
+    def _initialize_weights(self):
+        """Initialize weights using Xavier uniform distribution."""
+        import torch.nn.init as nn_init
         for param in self.model.parameters():
             if param.dim() > 1:
-                nn.init.xavier_uniform_(param)
+                nn_init.xavier_uniform_(param)
 
-    def fit(self, X, y, epochs: int = 50, patience: int = 5):
+    def fit(self, X, y, epochs: int = 50, patience: int = 50):
         """
         Train the QuantumClassifier on the provided dataset.
-
         Args:
             X (array-like): Training data.
             y (array-like): Training labels.
@@ -222,14 +238,14 @@ class QuantumClassifier_SamplerQNN_CPU:
         scaler = StandardScaler()
         X = scaler.fit_transform(X)
 
-        dataset = TensorDataset(torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.float32).view(-1, 1))
+        dataset = TensorDataset(torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.long))
         dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
 
-        print("Training in progress...\n")
         best_loss = float('inf')
         wait = 0
         training_losses = []
 
+        print("Training in progress...\n")
         for epoch in range(epochs):
             epoch_loss = 0
             progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{epochs}", unit="batch", leave=False)
@@ -266,9 +282,9 @@ class QuantumClassifier_SamplerQNN_CPU:
 
     def plot_training_graph(self, training_losses):
         """Plot training loss graph."""
-        import matplotlib.pyplot as plt
+        import matplotlib.pylab as plt 
         import matplotlib
-        matplotlib.use("Agg") 
+        matplotlib.use("Agg")
         plt.figure(figsize=(8, 6))
         plt.plot(training_losses, label="Training Loss", color='b')
         plt.xlabel("Epochs")
@@ -298,12 +314,12 @@ class QuantumClassifier_SamplerQNN_CPU:
     def score(self, X, y):
         """Calculate accuracy of the model."""
         import torch
-        y_tensor = torch.tensor(y, dtype=torch.float32).view(-1, 1)
+        y_tensor = torch.tensor(y, dtype=torch.long).view(-1, 1)
         predictions, _ = self.predict(X)
         accuracy = (predictions == y_tensor.numpy()).mean()
         return accuracy
 
-    def save_model(self, file_path="quantum_model.pth"):
+    def save_model(self, file_path="quantumclassifier_samplerqnn.pth"):
         """Save model to file."""
         import torch
         torch.save({
@@ -314,7 +330,7 @@ class QuantumClassifier_SamplerQNN_CPU:
         print(f"Model saved to {file_path}")
 
     @classmethod
-    def load_model(cls, file_path="quantum_model.pth", lr=0.001):
+    def load_model(cls, file_path="quantumclassifier_samplerqnn.pth", lr=0.001):
         """Load model from file."""
         import torch
         checkpoint = torch.load(file_path, map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
@@ -327,12 +343,12 @@ class QuantumClassifier_SamplerQNN_CPU:
         print(f"Model loaded from {file_path}")
         return model_instance
 
-    def print_quantum_circuit(self, file_name="quantum_circuit.png"):
+    def print_quantum_circuit(self, file_name="quantum_SamplerQNN_circuit.png"):
         """Save and display the quantum circuit."""
         decomposed_circuit = self.qnn_circuit.decompose()
         decomposed_circuit.draw('mpl', filename=file_name)
         print(f"Decomposed circuit saved to {file_name}")
-        print(f"The Circuit Is :\n{self.qnn_circuit}")
+        print(f"The Quantum Circuit without a Decomposssion is:\n{self.qnn_circuit}")
 
 """"This code will runs on Local computer """
 

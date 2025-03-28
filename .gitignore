@@ -18,3 +18,4 @@ GQNN.egg-info/
 *.ipynb
 *.html
 *.pth
+.github
