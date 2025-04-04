@@ -1,4 +1,5 @@
 # GQNN: A Python Package for Quantum Neural Networks
+[![PyPI version](https://badge.fury.io/py/GQNN.svg)](https://badge.fury.io/py/GQNN)
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn/week)](https://pepy.tech/projects/gqnn)
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn/month)](https://pepy.tech/projects/gqnn)
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn)](https://pepy.tech/projects/gqnn)
