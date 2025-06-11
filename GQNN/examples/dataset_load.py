@@ -35,17 +35,19 @@ print(f"x_train shape: {x_train.shape}")
 print(f"y_train shape: {y_train.shape}")  
 
 # Initialize and train the Quantum Neural Network model
-model = QuantumClassifier_EstimatorQNN_CPU(num_qubits=4, maxiter=60)
+model = VariationalQuantumClassifier_CPU(num_qubits=4)
 model.fit(x_train, y_train)
 
 # Print the trained model's parameters
 # model.print_model()
 
 # Evaluate the model and compute accuracy
-score = model.score(x_test, y_test)
+score = model.evaluate(x_test, y_test)
 # adjusted_score = 1 - score
-print(f"Model accuracy (adjusted): {score * 100:.2f}%")
-model.print_quantum_circuit()
+print(f"Model accuracy (adjusted): {score}%")
+model.visualize_circuit()
+
+model.save_model('VQC_model.model')
 # model_1 = QuantumClassifier_SamplerQNN_CPU(num_inputs=4, output_shape=2, ansatz_reps=1,maxiter=35)
 # model_1.fit(x_train, y_train)
 

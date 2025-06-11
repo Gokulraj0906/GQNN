@@ -2,6 +2,7 @@
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn/week)](https://pepy.tech/projects/gqnn)
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn/month)](https://pepy.tech/projects/gqnn)
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn)](https://pepy.tech/projects/gqnn)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 GQNN is a pioneering Python library designed for research and experimentation with Quantum Neural Networks (QNNs). By integrating principles of quantum computing with classical neural network architectures, GQNN enables researchers to explore hybrid models that leverage the computational advantages of quantum systems. This library was developed by **GokulRaj S** as part of his research on Customized Quantum Neural Networks.
 
@@ -49,7 +50,7 @@ This package allows you to:
 ## Installation
 
 ### Prerequisites
-- Python 3.7 or higher
+- Python 3.7 to 3.12 higher or lower version is not supported
 - Ensure pip is updated: `pip install --upgrade pip`
 
 ### Installing GQNN
@@ -221,4 +222,3 @@ For queries, feedback, or collaboration opportunities, please reach out:
 ---
 
 Happy Quantum Computing! 🚀
-
