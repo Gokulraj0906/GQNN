@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='GQNN',
-    version='1.5.0',
+    version='1.5.5',
     author='GokulRaj S',
     author_email='gokulsenthil0906@gmail.com', 
     description=(
@@ -58,7 +58,7 @@ setup(
     ],
     python_requires='>=3.7, <=3.12',
     project_urls={
-        'Documentation': 'https://www.gokulraj.tech/GQNN/docs',
-        'Source': 'https://www.gokulraj.tech/GQNN',
+        'Documentation': 'https://www.GQNN.gokulraj.tech/docs',
+        'Source': 'https://www.GQNN.gokulraj.tech/',
     },
 )

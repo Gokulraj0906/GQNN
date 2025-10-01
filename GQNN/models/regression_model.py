@@ -9,7 +9,6 @@ Classes:
     - QuantumRegressor_EstimatorQNN_CPU: Quantum regressor using EstimatorQNN
     - QuantumRegressor_VQR_CPU: Variational quantum regressor using VQR
 """
-
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -20,47 +19,20 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 class QuantumRegressor_EstimatorQNN_CPU:
     """
-    A quantum machine learning regressor using EstimatorQNN for regression tasks.
-    
-    This regressor utilizes a quantum neural network (QNN) with quantum circuits
-    and employs classical optimization algorithms to train the quantum model for
-    regression problems.
-    
-    Attributes:
-        num_qubits (int): Number of qubits in the quantum circuit
-        maxiter (int): Maximum number of optimization iterations
-        qc (QNNCircuit): Quantum circuit representing the neural network
-        estimator (Estimator): Estimator for quantum state measurements
-        estimator_qnn (EstimatorQNN): Quantum neural network instance
-        optimizer (SPSA): Optimization algorithm for training
-        regressor (NeuralNetworkRegressor): Main regressor object
-        weights (np.ndarray): Trained model weights
-        objective_func_vals (list): Training objective function values
-        
-    Methods:
-        fit: Train the quantum regressor
-        predict: Make predictions on new data
-        score: Evaluate model performance (R² score)
-        save_model: Save trained model to disk
-        load_model: Load model from disk
-        print_model: Display and save quantum circuit
+    Enhanced quantum machine learning regressor using EstimatorQNN.
     """
     
-    def __init__(self, num_qubits: int, maxiter: int = 30):
+    def __init__(self, num_qubits: int, maxiter: int = 30, learning_rate: float = 0.1):
         """
         Initialize the quantum regressor with EstimatorQNN.
         
         Args:
             num_qubits (int): Number of qubits in the quantum circuit
             maxiter (int, optional): Maximum optimization iterations. Defaults to 30.
-            
-        Raises:
-            ImportError: If required Qiskit packages are not installed
-            RuntimeError: If quantum circuit initialization fails
-            ValueError: If input parameters are invalid
+            learning_rate (float, optional): Learning rate for SPSA optimizer. Defaults to 0.1.
         """
         try:
-            from qiskit_machine_learning.optimizers import SPSA
+            from qiskit_machine_learning.optimizers import SPSA, COBYLA
             from qiskit_machine_learning.utils import algorithm_globals
             from qiskit_machine_learning.algorithms.regressors import NeuralNetworkRegressor
             from qiskit_machine_learning.neural_networks import EstimatorQNN
@@ -78,8 +50,10 @@ class QuantumRegressor_EstimatorQNN_CPU:
         try:
             self.num_qubits = num_qubits
             self.maxiter = maxiter
+            self.learning_rate = learning_rate
             self.weights = None
             self.objective_func_vals = []
+            self._iteration_count = 0
             
             # Set random seed for reproducibility
             algorithm_globals.random_seed = 42
@@ -89,11 +63,12 @@ class QuantumRegressor_EstimatorQNN_CPU:
             self.estimator = Estimator()
             self.estimator_qnn = EstimatorQNN(circuit=self.qc, estimator=self.estimator)
             
-            # Initialize optimizer and regressor
-            self.optimizer = SPSA(maxiter=maxiter)
+            # Use COBYLA optimizer (more reliable callbacks than SPSA)
+            self.optimizer = COBYLA(maxiter=maxiter)
+            
             self.regressor = NeuralNetworkRegressor(
                 neural_network=self.estimator_qnn,
-                loss="absolute_error",
+                loss="squared_error",  # Changed to squared_error for better convergence
                 optimizer=self.optimizer,
                 callback=self._callback_graph
             )
@@ -109,13 +84,14 @@ class QuantumRegressor_EstimatorQNN_CPU:
             weights (np.ndarray): Current model weights during training
             obj_func_eval (float): Current objective function value
         """
+        self._iteration_count += 1
         self.objective_func_vals.append(obj_func_eval)
         
         # Update progress bar if available
-        if hasattr(self, '_progress_bar'):
+        if hasattr(self, '_progress_bar') and self._progress_bar is not None:
             self._progress_bar.set_postfix(
                 obj_func=f"{obj_func_eval:.6f}",
-                iteration=len(self.objective_func_vals)
+                iteration=self._iteration_count
             )
             self._progress_bar.update(1)
     
@@ -130,10 +106,6 @@ class QuantumRegressor_EstimatorQNN_CPU:
             
         Returns:
             np.ndarray: Final trained weights
-            
-        Raises:
-            ValueError: If input data has invalid shape or type
-            RuntimeError: If training fails
         """
         try:
             # Validate input data
@@ -150,27 +122,48 @@ class QuantumRegressor_EstimatorQNN_CPU:
             if verbose:
                 print(f"Training quantum regressor with {len(X)} samples...")
                 print(f"Features: {X.shape[1]}, Qubits: {self.num_qubits}")
+                print(f"Optimizer: COBYLA, Max iterations: {self.maxiter}")
+                print(f"Note: Training may take a few minutes...\n")
                 
                 # Create progress bar for training iterations
                 self._progress_bar = tqdm(total=self.maxiter, desc="Training", 
-                                        unit="iter", leave=True)
+                                        unit="iter", leave=True, 
+                                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]')
+            else:
+                self._progress_bar = None
             
-            # Reset objective function values
+            # Reset objective function values and iteration count
             self.objective_func_vals = []
+            self._iteration_count = 0
             
             # Train the regressor
             self.regressor.fit(X, y)
             self.weights = self.regressor.weights
             
             if verbose:
-                self._progress_bar.close()
-                print(f"Training completed! Final objective: {self.objective_func_vals[-1]:.6f}")
-                self._plot_training_curve()
+                if self._progress_bar is not None:
+                    # Update progress bar to show completion
+                    remaining = self.maxiter - self._iteration_count
+                    if remaining > 0:
+                        self._progress_bar.update(remaining)
+                    self._progress_bar.close()
+                
+                # Display results
+                if self.objective_func_vals:
+                    print(f"\n✓ Training completed!")
+                    print(f"  Total iterations: {len(self.objective_func_vals)}")
+                    print(f"  Final objective: {self.objective_func_vals[-1]:.6f}")
+                    print(f"  Initial objective: {self.objective_func_vals[0]:.6f}")
+                    print(f"  Improvement: {self.objective_func_vals[0] - self.objective_func_vals[-1]:.6f}")
+                    self._plot_training_curve()
+                else:
+                    print(f"\n✓ Training completed!")
+                    print(f"  (Callback data not available - this is normal for some optimizers)")
             
             return self.weights
             
         except Exception as e:
-            if hasattr(self, '_progress_bar'):
+            if hasattr(self, '_progress_bar') and self._progress_bar is not None:
                 self._progress_bar.close()
             raise RuntimeError(f"Training failed: {e}")
     
@@ -183,10 +176,6 @@ class QuantumRegressor_EstimatorQNN_CPU:
             
         Returns:
             np.ndarray: Predicted target values
-            
-        Raises:
-            ValueError: If input data has invalid shape
-            RuntimeError: If prediction fails or model not trained
         """
         try:
             if self.weights is None:
@@ -211,10 +200,6 @@ class QuantumRegressor_EstimatorQNN_CPU:
             
         Returns:
             float: R² (coefficient of determination) score
-            
-        Raises:
-            ValueError: If input data has invalid shape
-            RuntimeError: If evaluation fails or model not trained
         """
         try:
             if self.weights is None:
@@ -238,10 +223,7 @@ class QuantumRegressor_EstimatorQNN_CPU:
         Save the trained model to disk.
         
         Args:
-            file_path (str, optional): Path to save the model. Defaults to "quantum_regressor_estimator.pkl".
-            
-        Raises:
-            RuntimeError: If model saving fails or model not trained
+            file_path (str, optional): Path to save the model.
         """
         try:
             if self.weights is None:
@@ -250,6 +232,7 @@ class QuantumRegressor_EstimatorQNN_CPU:
             model_data = {
                 'num_qubits': self.num_qubits,
                 'maxiter': self.maxiter,
+                'learning_rate': self.learning_rate,
                 'weights': self.weights,
                 'objective_func_vals': self.objective_func_vals
             }
@@ -257,7 +240,7 @@ class QuantumRegressor_EstimatorQNN_CPU:
             with open(file_path, 'wb') as f:
                 pickle.dump(model_data, f)
             
-            print(f"Model saved to {file_path}")
+            print(f"✓ Model saved to {file_path}")
             
         except Exception as e:
             raise RuntimeError(f"Failed to save model: {e}")
@@ -268,14 +251,10 @@ class QuantumRegressor_EstimatorQNN_CPU:
         Load a trained model from disk.
         
         Args:
-            file_path (str, optional): Path to the saved model. Defaults to "quantum_regressor_estimator.pkl".
+            file_path (str, optional): Path to the saved model.
             
         Returns:
             QuantumRegressor_EstimatorQNN_CPU: Loaded model instance
-            
-        Raises:
-            FileNotFoundError: If model file doesn't exist
-            RuntimeError: If model loading fails
         """
         try:
             with open(file_path, 'rb') as f:
@@ -284,7 +263,8 @@ class QuantumRegressor_EstimatorQNN_CPU:
             # Create new instance
             model_instance = cls(
                 num_qubits=model_data['num_qubits'],
-                maxiter=model_data['maxiter']
+                maxiter=model_data['maxiter'],
+                learning_rate=model_data.get('learning_rate', 0.1)
             )
             
             # Load weights and training history
@@ -294,7 +274,7 @@ class QuantumRegressor_EstimatorQNN_CPU:
             # Set the weights in the regressor
             model_instance.regressor.weights = model_data['weights']
             
-            print(f"Model loaded from {file_path}")
+            print(f"✓ Model loaded from {file_path}")
             return model_instance
             
         except FileNotFoundError:
@@ -309,7 +289,8 @@ class QuantumRegressor_EstimatorQNN_CPU:
                 return
             
             plt.figure(figsize=(10, 6))
-            plt.plot(self.objective_func_vals, 'b-', linewidth=2, label="Objective Function")
+            plt.plot(self.objective_func_vals, 'b-', linewidth=2, marker='o', 
+                    markersize=4, label="Objective Function")
             plt.xlabel("Iteration", fontsize=12)
             plt.ylabel("Objective Function Value", fontsize=12)
             plt.title("Quantum Regressor Training Progress (EstimatorQNN)", fontsize=14)
@@ -318,18 +299,17 @@ class QuantumRegressor_EstimatorQNN_CPU:
             plt.tight_layout()
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
             plt.close()
-            print(f"Training curve saved to {save_path}")
+            print(f"✓ Training curve saved to {save_path}")
             
         except Exception as e:
-            print(f"Failed to save training curve: {e}")
+            print(f"⚠ Failed to save training curve: {e}")
     
     def print_model(self, file_name: str = "quantum_regressor_circuit_estimator.png"):
         """
         Display and save the quantum circuit diagram with model information.
         
         Args:
-            file_name (str, optional): Filename to save the circuit diagram. 
-                                     Defaults to "quantum_regressor_circuit_estimator.png".
+            file_name (str, optional): Filename to save the circuit diagram.
         """
         try:
             import matplotlib
@@ -340,61 +320,45 @@ class QuantumRegressor_EstimatorQNN_CPU:
             circuit.draw(output='mpl', ax=ax, style='iqp')
             plt.savefig(file_name, dpi=300, bbox_inches='tight')
             plt.close()
-            print(f"Circuit image saved as {file_name}")
+            print(f"✓ Circuit image saved as {file_name}")
             
             # Print model information
-            print(f"\nQuantum Regressor Information (EstimatorQNN):")
+            print(f"\n{'='*60}")
+            print(f"Quantum Regressor Information (EstimatorQNN)")
+            print(f"{'='*60}")
             print(f"Number of qubits: {self.num_qubits}")
             print(f"Circuit depth: {self.qc.depth()}")
             print(f"Number of parameters: {self.qc.num_parameters}")
             print(f"Maximum iterations: {self.maxiter}")
-            print(f"\nModel Weights: {self.weights}")
-            print(f"\nCircuit:\n{self.qc}")
+            if self.weights is not None:
+                print(f"Model Weights Shape: {self.weights.shape}")
+                print(f"Weights range: [{self.weights.min():.4f}, {self.weights.max():.4f}]")
+            print(f"{'='*60}")
             
         except Exception as e:
-            print(f"Error displaying quantum circuit: {e}")
+            print(f"⚠ Error displaying quantum circuit: {e}")
 
 
 class QuantumRegressor_VQR_CPU:
     """
-    A variational quantum regressor using Qiskit's Variational Quantum Regressor (VQR).
-    
-    This class implements a quantum circuit-based regression model that utilizes
-    a feature map and ansatz to approximate continuous functions. It uses variational
-    optimization to train the quantum parameters for regression tasks.
-
-    Attributes:
-        num_qubits (int): Number of qubits in the quantum circuit
-        maxiter (int): Maximum number of optimization iterations
-        objective_func_vals (list): Training objective function values
-        estimator (Estimator): Quantum estimator for circuit evaluation
-        feature_map (QuantumCircuit): Feature map encoding classical data
-        ansatz (QuantumCircuit): Parameterized ansatz circuit
-        optimizer (L_BFGS_B): Classical optimizer for training
-        regressor (VQR): Variational Quantum Regressor instance
-        weights (np.ndarray): Learned weights of the trained model
+    Enhanced variational quantum regressor using VQR with improved training.
     """
     
-    def __init__(self, num_qubits: int, maxiter: int = 5):
+    def __init__(self, num_qubits: int, maxiter: int = 50):
         """
         Initialize the Variational Quantum Regressor.
         
         Args:
             num_qubits (int): Number of qubits to use in the quantum circuit
-            maxiter (int, optional): Maximum optimization iterations. Defaults to 5.
-            
-        Raises:
-            ImportError: If required Qiskit packages are not installed
-            RuntimeError: If quantum circuit initialization fails
-            ValueError: If input parameters are invalid
+            maxiter (int, optional): Maximum optimization iterations. Defaults to 50.
         """
         try:
-            from qiskit_machine_learning.optimizers import L_BFGS_B
+            from qiskit_machine_learning.optimizers import COBYLA
             from qiskit_machine_learning.utils import algorithm_globals
             from qiskit_machine_learning.algorithms.regressors import VQR
             from qiskit.primitives import StatevectorEstimator as Estimator
             from qiskit import QuantumCircuit
-            from qiskit.circuit import Parameter
+            from qiskit.circuit.library import RealAmplitudes, ZZFeatureMap
         except ImportError as e:
             raise ImportError(f"Required package not found: {e}. Please install qiskit-machine-learning.")
         
@@ -412,13 +376,21 @@ class QuantumRegressor_VQR_CPU:
             self.maxiter = maxiter
             self.objective_func_vals = []
             self.weights = None
+            self._iteration_count = 0
             
-            # Initialize quantum components
+            # Initialize quantum components with better circuits
             self.estimator = Estimator()
-            self._initialize_circuit()
             
-            # Initialize optimizer and regressor
-            self.optimizer = L_BFGS_B(maxiter=maxiter)
+            # Use ZZFeatureMap for better feature encoding
+            self.feature_map = ZZFeatureMap(num_qubits, reps=2)
+            
+            # Use RealAmplitudes ansatz for better expressivity
+            self.ansatz = RealAmplitudes(num_qubits, reps=3)
+            
+            # Use COBYLA optimizer (more reliable for VQR)
+            # Use COBYLA optimizer (more reliable for VQR)
+            self.optimizer = COBYLA(maxiter=maxiter)
+            
             self.regressor = VQR(
                 feature_map=self.feature_map,
                 ansatz=self.ansatz,
@@ -430,26 +402,6 @@ class QuantumRegressor_VQR_CPU:
         except Exception as e:
             raise RuntimeError(f"Failed to initialize variational quantum regressor: {e}")
     
-    def _initialize_circuit(self):
-        """
-        Initialize the quantum circuit with a feature map and an ansatz.
-        
-        The feature map encodes classical data into quantum states using RY rotations,
-        and the ansatz is used for variational parameter optimization.
-        """
-        from qiskit import QuantumCircuit
-        from qiskit.circuit import Parameter
-        
-        # Create feature map with parameterized RY gates
-        param_x = Parameter("x")
-        self.feature_map = QuantumCircuit(self.num_qubits, name="FeatureMap")
-        self.feature_map.ry(param_x, range(self.num_qubits))
-
-        # Create ansatz with variational parameters
-        param_y = Parameter("y")
-        self.ansatz = QuantumCircuit(self.num_qubits, name="Ansatz")
-        self.ansatz.ry(param_y, range(self.num_qubits))
-    
     def _callback_graph(self, weights: np.ndarray, obj_func_eval: float):
         """
         Callback function to track objective function during training.
@@ -457,14 +409,15 @@ class QuantumRegressor_VQR_CPU:
         Args:
             weights (np.ndarray): Current model weights during training
             obj_func_eval (float): Current objective function value
-        """       
+        """
+        self._iteration_count += 1
         self.objective_func_vals.append(obj_func_eval)
         
         # Update progress bar if available
-        if hasattr(self, '_progress_bar'):
+        if hasattr(self, '_progress_bar') and self._progress_bar is not None:
             self._progress_bar.set_postfix(
                 obj_func=f"{obj_func_eval:.6f}",
-                iteration=len(self.objective_func_vals)
+                iteration=self._iteration_count
             )
             self._progress_bar.update(1)
     
@@ -479,10 +432,6 @@ class QuantumRegressor_VQR_CPU:
             
         Returns:
             np.ndarray: Final trained weights
-            
-        Raises:
-            ValueError: If input data has invalid shape or type
-            RuntimeError: If training fails
         """
         try:
             # Validate input data
@@ -499,44 +448,53 @@ class QuantumRegressor_VQR_CPU:
             if verbose:
                 print(f"Training variational quantum regressor with {len(X)} samples...")
                 print(f"Features: {X.shape[1]}, Qubits: {self.num_qubits}")
+                print(f"Optimizer: COBYLA, Max iterations: {self.maxiter}")
+                print(f"Note: Training may take a few minutes...\n")
                 
                 # Create progress bar for training iterations
                 self._progress_bar = tqdm(total=self.maxiter, desc="Training", 
-                                        unit="iter", leave=True)
+                                        unit="iter", leave=True,
+                                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]')
+            else:
+                self._progress_bar = None
             
-            # Reset objective function values
+            # Reset objective function values and iteration count
             self.objective_func_vals = []
+            self._iteration_count = 0
             
             # Train the regressor
             self.regressor.fit(X, y)
             self.weights = self.regressor.weights
             
             if verbose:
-                self._progress_bar.close()
-                print(f"Training completed! Final objective: {self.objective_func_vals[-1]:.6f}")
-                self._plot_training_curve()
+                if self._progress_bar is not None:
+                    # Update progress bar to show completion
+                    remaining = self.maxiter - self._iteration_count
+                    if remaining > 0:
+                        self._progress_bar.update(remaining)
+                    self._progress_bar.close()
+                
+                # Display results
+                if self.objective_func_vals:
+                    print(f"\n✓ Training completed!")
+                    print(f"  Total iterations: {len(self.objective_func_vals)}")
+                    print(f"  Final objective: {self.objective_func_vals[-1]:.6f}")
+                    print(f"  Initial objective: {self.objective_func_vals[0]:.6f}")
+                    print(f"  Improvement: {self.objective_func_vals[0] - self.objective_func_vals[-1]:.6f}")
+                    self._plot_training_curve()
+                else:
+                    print(f"\n✓ Training completed!")
+                    print(f"  (Callback data not available - this is normal for some optimizers)")
             
             return self.weights
             
         except Exception as e:
-            if hasattr(self, '_progress_bar'):
+            if hasattr(self, '_progress_bar') and self._progress_bar is not None:
                 self._progress_bar.close()
             raise RuntimeError(f"Training failed: {e}")
     
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """
-        Make predictions using the trained variational quantum regressor.
-        
-        Args:
-            X (np.ndarray): Input data for prediction of shape (n_samples, n_features)
-            
-        Returns:
-            np.ndarray: Predicted output values
-            
-        Raises:
-            ValueError: If input data has invalid shape
-            RuntimeError: If prediction fails or model not trained
-        """
+        """Make predictions using the trained variational quantum regressor."""
         try:
             if self.weights is None:
                 raise RuntimeError("Model must be trained before making predictions")
@@ -551,20 +509,7 @@ class QuantumRegressor_VQR_CPU:
             raise RuntimeError(f"Prediction failed: {e}")
     
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
-        """
-        Evaluate the model's performance using R² score.
-        
-        Args:
-            X (np.ndarray): Test input data of shape (n_samples, n_features)
-            y (np.ndarray): True output values of shape (n_samples,)
-            
-        Returns:
-            float: R² (coefficient of determination) score
-            
-        Raises:
-            ValueError: If input data has invalid shape
-            RuntimeError: If evaluation fails or model not trained
-        """
+        """Evaluate the model's performance using R² score."""
         try:
             if self.weights is None:
                 raise RuntimeError("Model must be trained before evaluation")
@@ -583,15 +528,7 @@ class QuantumRegressor_VQR_CPU:
             raise RuntimeError(f"Evaluation failed: {e}")
     
     def save_model(self, file_path: str = "variational_quantum_regressor.pkl"):
-        """
-        Save the trained model to disk.
-        
-        Args:
-            file_path (str, optional): Path to save the model. Defaults to "variational_quantum_regressor.pkl".
-            
-        Raises:
-            RuntimeError: If model saving fails or model not trained
-        """
+        """Save the trained model to disk."""
         try:
             if self.weights is None:
                 raise RuntimeError("Cannot save untrained model")
@@ -606,26 +543,14 @@ class QuantumRegressor_VQR_CPU:
             with open(file_path, 'wb') as f:
                 pickle.dump(model_data, f)
             
-            print(f"Model saved to {file_path}")
+            print(f"✓ Model saved to {file_path}")
             
         except Exception as e:
             raise RuntimeError(f"Failed to save model: {e}")
     
     @classmethod
     def load_model(cls, file_path: str = "variational_quantum_regressor.pkl"):
-        """
-        Load a trained model from disk.
-        
-        Args:
-            file_path (str, optional): Path to the saved model. Defaults to "variational_quantum_regressor.pkl".
-            
-        Returns:
-            QuantumRegressor_VQR_CPU: Loaded model instance
-            
-        Raises:
-            FileNotFoundError: If model file doesn't exist
-            RuntimeError: If model loading fails
-        """
+        """Load a trained model from disk."""
         try:
             with open(file_path, 'rb') as f:
                 model_data = pickle.load(f)
@@ -643,7 +568,7 @@ class QuantumRegressor_VQR_CPU:
             # Set the weights in the regressor
             model_instance.regressor.weights = model_data['weights']
             
-            print(f"Model loaded from {file_path}")
+            print(f"✓ Model loaded from {file_path}")
             return model_instance
             
         except FileNotFoundError:
@@ -658,7 +583,8 @@ class QuantumRegressor_VQR_CPU:
                 return
             
             plt.figure(figsize=(10, 6))
-            plt.plot(self.objective_func_vals, 'b-', linewidth=2, label="Objective Function")
+            plt.plot(self.objective_func_vals, 'b-', linewidth=2, marker='o',
+                    markersize=4, label="Objective Function")
             plt.xlabel("Iteration", fontsize=12)
             plt.ylabel("Objective Function Value", fontsize=12)
             plt.title("Variational Quantum Regressor Training Progress", fontsize=14)
@@ -667,48 +593,45 @@ class QuantumRegressor_VQR_CPU:
             plt.tight_layout()
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
             plt.close()
-            print(f"Training curve saved to {save_path}")
+            print(f"✓ Training curve saved to {save_path}")
             
         except Exception as e:
-            print(f"Failed to save training curve: {e}")
+            print(f"⚠ Failed to save training curve: {e}")
 
     def print_model(self, file_name: str = "variational_quantum_regressor_circuit.png"):
-        """
-        Display and save the quantum circuit used in the model.
-        
-        Args:
-            file_name (str, optional): Filename to save the circuit diagram. 
-                                     Defaults to "variational_quantum_regressor_circuit.png".
-        """
+        """Display and save the quantum circuit used in the model."""
         try:
             import matplotlib
             matplotlib.use("Agg")
             # Save circuit diagram (feature map + ansatz)
-            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), dpi=300)
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), dpi=300)
             
             # Draw feature map
-            self.feature_map.draw(output='mpl', ax=ax1, style='iqp')
-            ax1.set_title("Feature Map", fontsize=14)
+            self.feature_map.decompose().draw(output='mpl', ax=ax1, style='iqp')
+            ax1.set_title("Feature Map (ZZFeatureMap)", fontsize=14, fontweight='bold')
             
             # Draw ansatz
-            self.ansatz.draw(output='mpl', ax=ax2, style='iqp')
-            ax2.set_title("Ansatz", fontsize=14)
+            self.ansatz.decompose().draw(output='mpl', ax=ax2, style='iqp')
+            ax2.set_title("Ansatz (RealAmplitudes)", fontsize=14, fontweight='bold')
             
             plt.tight_layout()
             plt.savefig(file_name, dpi=300, bbox_inches='tight')
             plt.close()
-            print(f"Circuit diagram saved as {file_name}")
+            print(f"✓ Circuit diagram saved as {file_name}")
             
             # Print model information
-            print(f"\nVariational Quantum Regressor Information:")
+            print(f"\n{'='*60}")
+            print(f"Variational Quantum Regressor Information")
+            print(f"{'='*60}")
             print(f"Number of qubits: {self.num_qubits}")
             print(f"Feature map depth: {self.feature_map.depth()}")
             print(f"Ansatz depth: {self.ansatz.depth()}")
             print(f"Total parameters: {self.ansatz.num_parameters}")
             print(f"Maximum iterations: {self.maxiter}")
-            print(f"\nModel Weights: {self.weights}")
-            print(f"\nFeature Map:\n{self.feature_map}")
-            print(f"\nAnsatz:\n{self.ansatz}")
+            if self.weights is not None:
+                print(f"Model Weights Shape: {self.weights.shape}")
+                print(f"Weights range: [{self.weights.min():.4f}, {self.weights.max():.4f}]")
+            print(f"{'='*60}")
             
         except Exception as e:
-            print(f"Error displaying quantum circuit: {e}")
+            print(f"⚠ Error displaying quantum circuit: {e}")

@@ -32,16 +32,16 @@ def run_model(model, name):
     model.save_model(f"{name.lower()}.pkl")
     model.print_model(f"{name.lower()}_circuit.png")
 
-# # Run different models
-# run_model(
-#     QuantumClassifier_EstimatorQNN_CPU(num_qubits=2, batch_size=32, lr=0.001),
-#     "EstimatorQNN"
-# )
+# Run different models
+run_model(
+    QuantumClassifier_EstimatorQNN_CPU(num_qubits=2, batch_size=32, lr=0.001),
+    "EstimatorQNN"
+)
 
-# run_model(
-#     QuantumClassifier_SamplerQNN_CPU(num_inputs=2, output_shape=2, ansatz_reps=1, maxiter=50),
-#     "SamplerQNN"
-# )
+run_model(
+    QuantumClassifier_SamplerQNN_CPU(num_inputs=2, output_shape=2, ansatz_reps=1, maxiter=50),
+    "SamplerQNN"
+)
 
 run_model(
     VariationalQuantumClassifier_CPU(num_inputs=2, maxiter=30),
