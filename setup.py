@@ -24,6 +24,7 @@ setup(
         'qiskit',
         'qiskit_ibm_runtime',
         'qiskit-machine-learning',
+        'qiskit-algorithms',
         'pylatexenc',
         'matplotlib',
         'torch',

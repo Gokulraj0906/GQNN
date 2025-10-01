@@ -1,8 +1,6 @@
 from GQNN.data.dataset import Data_Read
 from GQNN.models.data_split import DataSplitter
-from GQNN.models.classification_model import QuantumClassifier_EstimatorQNN_CPU, QuantumClassifier_SamplerQNN_CPU,VariationalQuantumClassifier_CPU
 import numpy as np
-from GQNN.models.regression_model import QuantumRegressor_EstimatorQNN_CPU,QuantumRegressor_VQR_CPU
 
 data_dir = 'D:\\Projects\\GQNN\\GQNN\\examples\\Employee_Salary_Dataset.csv'
 
@@ -30,13 +28,3 @@ num_qubits = x_train.shape[1]
 print(f"x_train shape: {x_train.shape}")
 print(f"x_train shape: {x_train.shape}")  
 print(f"y_train shape: {y_train.shape}")  
-
-model = QuantumClassifier_EstimatorQNN_CPU(num_qubits=4,maxiter=10)
-model.fit(x_train, y_train)
-
-score = model.score(x_test, y_test)
-
-print(f"Model accuracy (adjusted): {score}%")
-model.print_quantum_circuit()
-
-model.save_model()

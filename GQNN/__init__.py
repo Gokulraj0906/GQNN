@@ -94,11 +94,12 @@ from GQNN.data import dataset
 from GQNN.models import classification_model
 from GQNN.models import data_split
 from GQNN.models import regression_model
+from GQNN.models import qsvm
 from GQNN.validation import validation
 from GQNN.data import rfe
 from GQNN.data import pca
 
-__all__ = ["dataset","classification_model","data_split","rfe","pca","validation","regression_model"]
+__all__ = ["dataset","classification_model","data_split","rfe","pca","validation","regression_model","qsvm"]
 
 __author__ = "GokulRaj S"
 __version__ = "1.5.5"
