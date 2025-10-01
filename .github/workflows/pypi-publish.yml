@@ -2,17 +2,20 @@ name: Publish Python Package
 
 on:
   release:
-    types: [created]  # Runs when a new GitHub release is created
+    types: [published]  # Run when a new release is published
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # Fetches your code
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
@@ -22,7 +25,9 @@ jobs:
           pip install build twine
 
       - name: Build package
-        run: python -m build
+        run: |
+          rm -rf dist  # clean old builds
+          python -m build
 
       - name: Publish to PyPI
         env:
