@@ -10,12 +10,10 @@ setup(
         'a hybrid model combining Quantum Computing and Neural Networks. '
         'It was developed by GokulRaj S for research on Customized Quantum Neural Networks.'
     ),
-    long_description=open('README.md',encoding='utf-8').read(), 
+    long_description=open('README.md', encoding='utf-8').read(), 
     long_description_content_type='text/markdown',
-    changelog_path = open('CHANGELOG.md',encoding='utf-8').read(),
-    changelog_content_type='text/markdown',
     url='https://github.com/gokulraj0906/GQNN',
-    license=open('LICENSE',encoding='utf-8').read(),  
+    license='MIT',
     packages=find_packages(),
     install_requires=[
         'numpy',
@@ -29,9 +27,8 @@ setup(
         'matplotlib',
         'torch',
         'tqdm',
-        
     ],
-     extras_require={
+    extras_require={
         'linux': ['fireducks']
     },
     keywords=[
