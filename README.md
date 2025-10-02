@@ -5,7 +5,6 @@
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn/month)](https://pepy.tech/projects/gqnn)
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn)](https://pepy.tech/projects/gqnn)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![Build](https://github.com/gokulraj0906/GQNN/actions/workflows/python-package.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
