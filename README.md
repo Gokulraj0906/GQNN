@@ -1,8 +1,17 @@
 # GQNN: A Python Package for Quantum Neural Networks
+[![Publish Python Package](https://github.com/Gokulraj0906/GQNN/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/Gokulraj0906/GQNN/actions/workflows/pypi-publish.yml)
+![Status](https://img.shields.io/badge/GQNN-Under%20Development-orange?style=for-the-badge&logo=github)
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn/week)](https://pepy.tech/projects/gqnn)
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn/month)](https://pepy.tech/projects/gqnn)
 [![PyPI Downloads](https://static.pepy.tech/badge/gqnn)](https://pepy.tech/projects/gqnn)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
+![Build](https://github.com/gokulraj0906/GQNN/actions/workflows/python-package.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
+![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/Gokulraj0906/GQNN)
+![GitHub Repo stars](https://img.shields.io/github/stars/Gokulraj0906/GQNN?style=social)
 
 GQNN is a pioneering Python library designed for research and experimentation with Quantum Neural Networks (QNNs). By integrating principles of quantum computing with classical neural network architectures, GQNN enables researchers to explore hybrid models that leverage the computational advantages of quantum systems. This library was developed by **GokulRaj S** as part of his research on Customized Quantum Neural Networks.
 
