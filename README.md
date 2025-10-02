@@ -71,54 +71,176 @@ pip install .
 ## Getting Started
 
 ### Basic Example
+
+### Classification model
+
 ```python
-from GQNN.data.dataset import Data_Read
-from GQNN.models.data_split import DataSplitter
-from GQNN.models.Linear_model import QuantumClassifier_EstimatorQNN
+import matplotlib
+matplotlib.use("Agg")
+matplotlib.use("TkAgg")
+
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+from GQNN.models.classification_model import (
+    QuantumClassifier_EstimatorQNN_CPU,
+    QuantumClassifier_SamplerQNN_CPU,
+    VariationalQuantumClassifier_CPU
+)
+
+# Data prep
+X, y = make_classification(
+    n_samples=200, n_features=2, n_informative=2,
+    n_redundant=0, n_clusters_per_class=1, random_state=42
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+scaler = StandardScaler()
+X_train, X_test = scaler.fit_transform(X_train), scaler.transform(X_test)
+
+# Helper to run, evaluate, save, visualize
+def run_model(model, name):
+    print(f"\n🔹 Training {name}...")
+    model.fit(X_train, y_train, verbose=True)
+    acc = model.score(X_test, y_test)
+    print(f"{name} Accuracy: {acc:.4f}")
+    model.save_model(f"{name.lower()}.pkl")
+    model.print_model(f"{name.lower()}_circuit.png")
+
+# Run different models
+run_model(
+    QuantumClassifier_EstimatorQNN_CPU(num_qubits=2, batch_size=32, lr=0.001),
+    "EstimatorQNN"
+)
+
+run_model(
+    QuantumClassifier_SamplerQNN_CPU(num_inputs=2, output_shape=2, ansatz_reps=1, maxiter=50),
+    "SamplerQNN"
+)
+
+run_model(
+    VariationalQuantumClassifier_CPU(num_inputs=2, maxiter=30),
+    "VariationalQNN"
+)
+```
+
+### Regression Example
+
+ ```python
+import matplotlib
+matplotlib.use("Agg")
+
+from GQNN.models.regression_model import (
+    QuantumRegressor_EstimatorQNN_CPU,
+    QuantumRegressor_VQR_CPU
+)
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+# Generate regression data
+X, y = make_regression(
+    n_samples=150,
+    n_features=3,
+    n_informative=3,
+    noise=3.0,
+    random_state=42,
+    bias=0.0
+)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Scaling
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+X_train_scaled = scaler_X.fit_transform(X_train)
+X_test_scaled = scaler_X.transform(X_test)
+y_train_scaled = scaler_y.fit_transform(y_train.reshape(-1, 1)).flatten()
+y_test_scaled = scaler_y.transform(y_test.reshape(-1, 1)).flatten()
+
+# Helper
+def run_regressor(model, name):
+    print(f"\n🔹 Training {name}...")
+    model.fit(X_train_scaled, y_train_scaled, verbose=True)
+    r2_train = model.score(X_train_scaled, y_train_scaled)
+    r2_test = model.score(X_test_scaled, y_test_scaled)
+    print(f"{name} R² Train: {r2_train:.4f}, R² Test: {r2_test:.4f}")
+    model.save_model(f"{name.lower()}.pkl")
+    model.print_model(f"{name.lower()}_circuit.png")
+
+# Run models
+run_regressor(
+    QuantumRegressor_EstimatorQNN_CPU(num_qubits=3, maxiter=100),
+    "EstimatorQNN_Regressor"
+)
+
+run_regressor(
+    QuantumRegressor_VQR_CPU(num_qubits=3, maxiter=100),
+    "VariationalQNN_Regressor"
+)
+ ```
+
+ ### QSVM Example (Classification + Regression)
+
+ ```python
+"""
+Comprehensive QSVM Testing: Classification and Regression
+"""
+
+from GQNN.models.qsvm import QSVC_CPU, QSVR_CPU
+from sklearn.datasets import make_classification, make_regression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import (
+    accuracy_score, confusion_matrix, r2_score,
+    mean_squared_error, mean_absolute_error
+)
 import numpy as np
 
-# Path to the dataset
-data_dir = 'Employee_Salary_Dataset.csv'
+def run_qsvc():
+    X, y = make_classification(
+        n_samples=80, n_features=2, n_informative=2,
+        n_redundant=0, random_state=42
+    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    scaler = StandardScaler()
+    X_train_scaled, X_test_scaled = scaler.fit_transform(X_train), scaler.transform(X_test)
 
-# Read and preprocess the dataset
-df = Data_Read.Read_csv(data_dir)
-print("Original DataFrame (after reading and cleaning):")
-print(df.head())
+    model = QSVC_CPU(num_qubits=2, feature_map_reps=2)
+    model.fit(X_train_scaled, y_train, verbose=True)
+    y_pred = model.predict(X_test_scaled)
 
-# Apply one-hot encoding to string columns
-df_with_encoded_columns = Data_Read.convert_strings_to_numeric()
-print("\nDataFrame after One-Hot Encoding of string columns:")
-print(df_with_encoded_columns.head())
+    acc = accuracy_score(y_test, y_pred)
+    cm = confusion_matrix(y_test, y_pred)
+    print(f"\nQSVC Accuracy: {acc:.4f}")
+    print("Confusion Matrix:\n", cm)
+    model.save_model("qsvc_model.pkl")
+    model.print_model("qsvc_circuit.png")
 
-# Scale the dataset using Min-Max Scaling
-scaled_df = Data_Read.Scale_data(method='minmax')
-print("\nScaled DataFrame (using Min-Max Scaling):")
-print(scaled_df.head())
+def run_qsvr():
+    X, y = make_regression(n_samples=80, n_features=2, noise=10.0, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    scaler = StandardScaler()
+    X_train_scaled, X_test_scaled = scaler.fit_transform(X_train), scaler.transform(X_test)
 
-# Split the dataset into features and target
-x = df_with_encoded_columns.drop('Gender_Male', axis=1)
-y = df_with_encoded_columns['Gender_Male'].astype(int)
+    model = QSVR_CPU(num_qubits=2, feature_map_reps=2, epsilon=0.1)
+    model.fit(X_train_scaled, y_train, verbose=True)
+    y_pred = model.predict(X_test_scaled)
 
-# Split the data into training and testing sets
-split = DataSplitter(x, y, test_size=0.75, shuffle=True, random_state=43)
-x_train, x_test, y_train, y_test = split.split()
+    r2 = r2_score(y_test, y_pred)
+    mse, mae = mean_squared_error(y_test, y_pred), mean_absolute_error(y_test, y_pred)
+    print(f"\nQSVR R²: {r2:.4f}, MSE: {mse:.4f}, MAE: {mae:.4f}")
+    model.save_model("qsvr_model.pkl")
+    model.print_model("qsvr_circuit.png")
 
-# Convert data to NumPy arrays for processing
-x_train = np.array(x_train)
-y_train = np.array(y_train)
-
-# Initialize and train the Quantum Neural Network model
-model = QuantumClassifier_EstimatorQNN(num_qubits=4, maxiter=60, random_seed=143)
-model.fit(x_train, y_train)
-
-# Print the trained model's parameters
-model.print_model()
-
-# Evaluate the model and compute accuracy
-score = model.score(x_test, y_test)
-adjusted_score = 1 - score
-print(f"Model accuracy (adjusted): {adjusted_score * 100:.2f}%")
-```
+if __name__ == "__main__":
+    run_qsvc()
+    run_qsvr()
+ ```
 
 ### Advanced Usage
 For more advanced configurations, such as custom quantum gates or layers, refer to the [Documentation](#documentation).
@@ -198,7 +320,7 @@ We welcome contributions to make GQNN better! Here's how you can contribute:
 
 ## License
 
-GQNN is licensed under the MIT License. See the [LICENSE](LICENSE) file for full details.
+GQNN is licensed under the  GPL-3.0 License. See the [LICENSE](LICENSE) file for full details.
 
 ---
 
