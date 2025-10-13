@@ -17,7 +17,7 @@ Elimination (RFE)** and **Principal Component Analysis (PCA)**.
 Package Metadata:
 -----------------
 - **Author:** GokulRaj S  
-- **Version:** 1.5.0  
+- **Version:** 1.6.0  
 - **License:** MIT  
 - **Maintainer:** GokulRaj S  
 - **Email:** gokulsenthil0906@gmail.com  
@@ -103,7 +103,7 @@ from GQNN.data import pca
 __all__ = ["dataset","classification_model","data_split","rfe","pca","validation","regression_model","qsvm","qnn"]
 
 __author__ = "GokulRaj S"
-__version__ = "1.5.5"
+__version__ = "1.6.0"
 __license__ = "MIT"
 __maintainer__ = "GokulRaj S"
 __email__ = "gokulsenthil0906@gmail.com"

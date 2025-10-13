@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='GQNN',
-    version='1.5.5',
+    version='1.6.0',
     author='GokulRaj S',
     author_email='gokulsenthil0906@gmail.com', 
     description=(
@@ -22,6 +22,8 @@ setup(
         'qiskit',
         'qiskit_ibm_runtime',
         'qiskit-machine-learning',
+        'qiskit-quantum-kernel',
+        'qiskit_aer',
         'qiskit-algorithms',
         'pylatexenc',
         'matplotlib',
