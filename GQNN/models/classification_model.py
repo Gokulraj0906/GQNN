@@ -384,7 +384,6 @@ class QuantumClassifier_EstimatorQNN_CPU:
         """
         try:
             import matplotlib
-            matplotlib.use("Agg")
             fig, ax = plt.subplots(figsize=(12, 8), dpi=300)
             self.qc.decompose().draw(output='mpl', ax=ax, style='iqp')
             plt.savefig(file_path, dpi=300, bbox_inches='tight')
@@ -727,7 +726,6 @@ class QuantumClassifier_SamplerQNN_CPU:
                 return
             import matplotlib
             matplotlib.use("Agg")
-            matplotlib.use("TkAgg")
             plt.figure(figsize=(10, 6))
             plt.plot(self.objective_func_vals, 'b-', linewidth=2, label="Objective Function")
             plt.xlabel("Iteration", fontsize=12)
@@ -753,7 +751,6 @@ class QuantumClassifier_SamplerQNN_CPU:
         try:
             import matplotlib
             matplotlib.use("Agg")
-            matplotlib.use("TkAgg")
             # Save circuit diagram
             fig, ax = plt.subplots(figsize=(12, 8), dpi=300)
             circuit = self.qnn_circuit.decompose()
@@ -1063,7 +1060,6 @@ class VariationalQuantumClassifier_CPU:
                 return
             import matplotlib
             matplotlib.use("Agg")
-            matplotlib.use("TkAgg")
             plt.figure(figsize=(10, 6))
             plt.plot(self.objective_func_vals, 'b-', linewidth=2, label="Objective Function")
             plt.xlabel("Iteration", fontsize=12)
@@ -1089,7 +1085,6 @@ class VariationalQuantumClassifier_CPU:
         try:
             import matplotlib
             matplotlib.use("Agg")
-            matplotlib.use("TkAgg")
             # Save circuit diagram (feature map + ansatz)
             fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), dpi=300)
             
